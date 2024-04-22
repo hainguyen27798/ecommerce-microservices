@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
 import { AbstractSchema } from '@/database/schemas/abstract.schema';
-import { UserRoles, UserStatus } from '@/modules/user/constants';
+import { SocialProvider, UserRoles, UserStatus } from '@/modules/user/constants';
 
 const COLLECTION_NAME = 'users';
 
@@ -21,6 +21,12 @@ export class User extends AbstractSchema {
 
     @Prop({ enum: UserStatus, default: UserStatus.IN_ACTIVE })
     status: string;
+
+    @Prop({ enum: SocialProvider, default: null })
+    socialProvider: string;
+
+    @Prop({ default: null })
+    image: string;
 
     @Prop({ type: Boolean, default: false })
     verify: boolean;

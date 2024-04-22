@@ -8,9 +8,9 @@ import { Configuration } from '@/config/configuration';
 import { PageOptionsDto, SuccessDto } from '@/dto/core';
 import { BcryptHelper, codeGeneratorHelper } from '@/helpers';
 import { UserRoles, UserStatus } from '@/modules/user/constants';
-import { CreateUserDto, RequestUserDto, UpdateUserDto, UserDto } from '@/modules/user/dto';
+import { RequestUserDto, UpdateUserDto, UserDto } from '@/modules/user/dto';
 import { User, UserDocument } from '@/modules/user/schemas/user.schema';
-import { FilterUserType, UserType } from '@/modules/user/types';
+import { FilterUserType, SocialUserInfoType, UserInfoType } from '@/modules/user/types';
 
 @Injectable()
 export class UserService {
@@ -52,10 +52,10 @@ export class UserService {
         return user;
     }
 
-    private async create(user: UserType, verificationCode: string = null): Promise<UserDocument> {
+    async create(user: UserInfoType, verificationCode: string = null) {
         const password = user.password ? await BcryptHelper.hashPassword(user.password) : null;
 
-        return this._UserModel.create({
+        await this._UserModel.create({
             email: user.email,
             name: user.name,
             password,
@@ -73,25 +73,6 @@ export class UserService {
         if (!!user) {
             throw new ConflictException('user_is_existed');
         }
-    }
-
-    async createNewUser(createUserDto: CreateUserDto) {
-        await this.checkDuplicateUserByEmail(createUserDto.email);
-
-        const verificationCode = codeGeneratorHelper();
-
-        const newUser = await this.create(
-            {
-                email: createUserDto.email,
-                name: createUserDto.name,
-                role: UserRoles[createUserDto.roleMapping],
-            },
-            verificationCode,
-        );
-
-        // todo: implement send verification code
-
-        return new SuccessDto(null, HttpStatus.OK, plainToClass(UserDto, newUser));
     }
 
     async requestUser(requestUserDto: RequestUserDto) {
@@ -240,6 +221,28 @@ export class UserService {
         );
 
         return new SuccessDto('active_successfully');
+    }
+
+    async verifyOrCreateSocialUser(socialUser: SocialUserInfoType): Promise<UserDocument> {
+        const user = await this._UserModel.findOne({
+            email: socialUser.email,
+            socialProvider: socialUser.provider,
+        });
+
+        // create new social user if it is not existed yet
+        if (!user) {
+            return this._UserModel.create({
+                email: socialUser.email,
+                name: socialUser.name,
+                status: UserStatus.ACTIVE,
+                role: UserRoles.USER,
+                image: socialUser.image,
+                socialProvider: socialUser.provider,
+                verify: true,
+            });
+        }
+
+        return user;
     }
 
     private async aggregateUser(query: mongoose.FilterQuery<User> = {}, pageOptions: PageOptionsDto = null) {

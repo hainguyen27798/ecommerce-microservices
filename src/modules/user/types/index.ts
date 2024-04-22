@@ -1,2 +1,2 @@
-export * from './filter-user.type';
-export * from './user.type';
+export * from './filter-user';
+export * from './user-info';

@@ -22,6 +22,10 @@ export class Configuration {
                     email: process.env[`SUPERUSER_EMAIL`],
                     pass: process.env[`SUPERUSER_PASS`],
                 },
+                auth0Config: {
+                    issuerBaseURL: process.env['AUTH0_ISSUER_BASE_URL'],
+                    audience: process.env['AUTH0_AUDIENCE'],
+                },
             };
         }
         return Configuration._config;
