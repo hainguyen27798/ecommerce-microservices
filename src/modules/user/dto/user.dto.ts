@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
 
 import { DefaultDataDto } from '@/dto/core';
@@ -6,17 +7,22 @@ import { UserStatus } from '@/modules/user/constants';
 @Exclude()
 export class UserDto extends DefaultDataDto {
     @Expose()
+    @ApiProperty()
     email: string;
 
     @Expose()
+    @ApiProperty()
     name: string;
 
     @Expose()
+    @ApiProperty({ enum: UserStatus, default: UserStatus.ACTIVE })
     status: UserStatus;
 
     @Expose()
-    isManager: boolean;
+    @ApiProperty({ default: false })
+    isSuperuser: boolean;
 
     @Expose()
-    isSuperuser: boolean;
+    @ApiProperty({ default: false })
+    isManager: boolean;
 }

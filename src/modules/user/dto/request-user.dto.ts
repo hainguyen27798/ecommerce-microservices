@@ -1,14 +1,7 @@
-import { Exclude, Expose } from 'class-transformer';
-import { IsEmail, IsNotEmpty } from 'class-validator';
+import { OmitType } from '@nestjs/swagger';
+import { Exclude } from 'class-transformer';
+
+import { CreateUserDto } from '@/modules/user/dto/create-user.dto';
 
 @Exclude()
-export class RequestUserDto {
-    @Expose()
-    @IsNotEmpty()
-    name: string;
-
-    @Expose()
-    @IsNotEmpty()
-    @IsEmail()
-    email: string;
-}
+export class RequestUserDto extends OmitType(CreateUserDto, ['roleMapping']) {}

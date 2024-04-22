@@ -17,5 +17,14 @@ export function ResponseDto<TBase extends Constructor>(Base: TBase, isArray = fa
         data?: TBase;
     }
 
+    if (isArray) {
+        class BaseListClass extends BaseClass {
+            @ApiProperty()
+            metadata?: any;
+        }
+
+        return BaseListClass;
+    }
+
     return BaseClass;
 }

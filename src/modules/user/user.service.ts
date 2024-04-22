@@ -5,7 +5,7 @@ import _ from 'lodash';
 import mongoose, { Model, Types } from 'mongoose';
 
 import { Configuration } from '@/config/configuration';
-import { PageOptionsDto, SuccessDto, TError } from '@/dto/core';
+import { PageOptionsDto, SuccessDto } from '@/dto/core';
 import { BcryptHelper, codeGeneratorHelper } from '@/helpers';
 import { UserRoles, UserStatus } from '@/modules/user/constants';
 import { CreateUserDto, RequestUserDto, UpdateUserDto, UserDto } from '@/modules/user/dto';
@@ -16,7 +16,7 @@ import { FilterUserType, UserType } from '@/modules/user/types';
 export class UserService {
     constructor(@InjectModel(User.name) private _UserModel: Model<User>) {}
 
-    async getUsers(pageOptions: PageOptionsDto): Promise<SuccessDto | TError> {
+    async getUsers(pageOptions: PageOptionsDto) {
         const data = await this.aggregateUser(
             {
                 $or: [
