@@ -12,6 +12,6 @@ export class CreateUserHandler implements ICommandHandler<CreateUserCommand, voi
     constructor(private _UserService: UserService) {}
 
     execute(command: CreateUserCommand) {
-        return this._UserService.create(command.user);
+        return this._UserService.createManualUser(command.user);
     }
 }

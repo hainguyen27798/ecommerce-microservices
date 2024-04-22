@@ -52,19 +52,6 @@ export class UserService {
         return user;
     }
 
-    async create(user: UserInfoType, verificationCode: string = null) {
-        const password = user.password ? await BcryptHelper.hashPassword(user.password) : null;
-
-        await this._UserModel.create({
-            email: user.email,
-            name: user.name,
-            password,
-            status: user.role === UserRoles.SUPERUSER ? UserStatus.ACTIVE : UserStatus.IN_ACTIVE,
-            role: user.role,
-            verificationCode,
-        });
-    }
-
     private async checkDuplicateUserByEmail(email: string) {
         const user = await this._UserModel.findOne({
             email,
@@ -186,6 +173,24 @@ export class UserService {
         );
 
         return new SuccessDto(null, HttpStatus.OK, plainToClass(UserDto, userUpdated));
+    }
+
+    async createManualUser(user: UserInfoType) {
+        await this.checkDuplicateUserByEmail(user.email);
+        await this.create(user);
+    }
+
+    private async create(user: UserInfoType, verificationCode: string = null) {
+        const password = user.password ? await BcryptHelper.hashPassword(user.password) : null;
+
+        await this._UserModel.create({
+            email: user.email,
+            name: user.name,
+            password,
+            status: user.role === UserRoles.SUPERUSER ? UserStatus.ACTIVE : UserStatus.IN_ACTIVE,
+            role: user.role,
+            verificationCode,
+        });
     }
 
     private async checkUserById(id: mongoose.Types.ObjectId | string) {
