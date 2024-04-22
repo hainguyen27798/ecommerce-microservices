@@ -18,6 +18,10 @@ export class Configuration {
                     databaseName: process.env['MONGO_BD_NAME'],
                     authSource: 'admin',
                 },
+                superuser: {
+                    email: process.env[`SUPERUSER_EMAIL`],
+                    pass: process.env[`SUPERUSER_PASS`],
+                },
             };
         }
         return Configuration._config;

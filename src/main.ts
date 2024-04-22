@@ -4,6 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import { Configuration } from '@/config/configuration';
 import { ENV_MODE } from '@/constants';
 import { LoggerServerHelper } from '@/helpers';
+import { UserService } from '@/modules/user/user.service';
 import { setupSwagger } from '@/setup-swagger';
 
 import { AppModule } from './app.module';
@@ -39,10 +40,16 @@ async function bootstrap() {
     app.enableShutdownHooks();
 
     await app.listen(Configuration.instance.port);
+
+    // create superuser
+    const userService = app.get(UserService);
+    await userService.createSuperUser();
 }
 
-bootstrap().then(() => {
-    LoggerServerHelper.log(`Server running at: http://localhost:${Configuration.instance.port}`);
-}).catch(reason => {
-    LoggerServerHelper.error(`Server occurred error: ${reason}`);
-});
+bootstrap()
+    .then(() => {
+        LoggerServerHelper.log(`Server running at: http://localhost:${Configuration.instance.port}`);
+    })
+    .catch((reason) => {
+        LoggerServerHelper.error(`Server occurred error: ${reason}`);
+    });

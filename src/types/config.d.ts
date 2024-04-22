@@ -11,4 +11,8 @@ export type TConfig = {
         databaseName: string;
         authSource: string;
     };
+    superuser: {
+        email: string;
+        pass: string;
+    };
 };
