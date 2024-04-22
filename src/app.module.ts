@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 
 import { Configuration } from '@/config/configuration';
 import { DatabaseModule } from '@/database/database.module';
+import { TokenModule } from '@/modules/token/token.module';
 import { UserModule } from '@/modules/user/user.module';
 
 @Module({
@@ -14,6 +15,7 @@ import { UserModule } from '@/modules/user/user.module';
         }),
         DatabaseModule,
         UserModule,
+        TokenModule,
     ],
     controllers: [],
     providers: [],
