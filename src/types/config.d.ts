@@ -1,3 +1,5 @@
+import { AuthOptions } from 'express-oauth2-jwt-bearer';
+
 import { ENV_MODE } from '@/constants';
 
 export type TConfig = {
@@ -15,4 +17,5 @@ export type TConfig = {
         email: string;
         pass: string;
     };
+    auth0Config: AuthOptions;
 };
