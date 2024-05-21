@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 
 import { Configuration } from '@/config/configuration';
 import { DatabaseModule } from '@/database/database.module';
+import { ApiKeyModule } from '@/modules/api-key/api-key.module';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { TokenModule } from '@/modules/token/token.module';
 import { UserModule } from '@/modules/user/user.module';
@@ -18,6 +19,7 @@ import { UserModule } from '@/modules/user/user.module';
         UserModule,
         TokenModule,
         AuthModule,
+        ApiKeyModule,
     ],
     controllers: [],
     providers: [],
