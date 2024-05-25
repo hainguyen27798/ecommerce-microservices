@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 
 import { Auth } from '@/modules/auth/decorators';
@@ -12,6 +12,15 @@ import { UserRoles } from '@/modules/user/constants';
 @ApiTags('Products')
 export class ProductController {
     constructor(private readonly _ProductService: ProductService) {}
+
+    @Get()
+    @ApiBody({
+        type: CreateProductDto,
+    })
+    @Auth(UserRoles.SHOP)
+    findOwner(@AuthUser() shop: TAuthUser) {
+        return this._ProductService.findProductOwner(shop.id);
+    }
 
     @Post()
     @ApiBody({

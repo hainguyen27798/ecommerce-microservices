@@ -23,6 +23,9 @@ export class Product extends AbstractSchema {
     @Prop({ default: 0 })
     quantity: number;
 
+    @Prop({ default: '' })
+    description: string;
+
     @Prop({ type: MongooseSchema.Types.ObjectId, name: 'shop_owner', required: true, ref: User.name })
     shop: User;
 

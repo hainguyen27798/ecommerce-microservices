@@ -19,6 +19,12 @@ export class CreateProductDto {
     image: string;
 
     @Expose()
+    @IsString()
+    @IsOptional()
+    @ApiProperty()
+    description: string;
+
+    @Expose()
     @IsNumber()
     @ApiProperty()
     price: number;

@@ -18,6 +18,10 @@ export class ProductService {
         @InjectModel(Product.name) private readonly _ProductModel: Model<Product>,
     ) {}
 
+    async findProductOwner(shopId: string) {
+        return this._ProductModel.find({ shop: shopId });
+    }
+
     async create(shop: TAuthUser, createProductDto: CreateProductDto) {
         const productDetails = await this._ProductDetailModels[createProductDto.type].create(
             createProductDto.attributes,
