@@ -143,7 +143,7 @@ export class UserService {
                 name: 'Super User',
                 email: superuser.email,
                 password: superuser.pass,
-                role: UserRoles.SUPERUSER,
+                roleMapping: UserRoles.SUPERUSER,
             });
         }
     }
@@ -187,8 +187,8 @@ export class UserService {
             email: user.email,
             name: user.name,
             password,
-            status: user.role === UserRoles.SUPERUSER ? UserStatus.ACTIVE : UserStatus.IN_ACTIVE,
-            role: user.role,
+            status: user.roleMapping === UserRoles.SUPERUSER ? UserStatus.ACTIVE : UserStatus.IN_ACTIVE,
+            role: user.roleMapping ? UserRoles[user.roleMapping] : UserRoles.USER,
             verificationCode,
         });
     }
