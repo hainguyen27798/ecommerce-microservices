@@ -5,7 +5,7 @@ import { IsNotEmpty } from 'class-validator';
 export class ClothingDto {
     @Expose()
     @IsNotEmpty()
-    branch: string;
+    brand: string;
 
     @Expose()
     @IsNotEmpty()

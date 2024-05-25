@@ -18,7 +18,7 @@ export class ProductController {
         type: CreateProductDto,
     })
     @Auth(UserRoles.SHOP)
-    async create(@AuthUser() shop: TAuthUser, @Body() createProductDto: CreateProductDto) {
-        await this._ProductService.create(shop, createProductDto);
+    create(@AuthUser() shop: TAuthUser, @Body() createProductDto: CreateProductDto) {
+        return this._ProductService.create(shop, createProductDto);
     }
 }

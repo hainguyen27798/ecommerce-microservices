@@ -2,7 +2,10 @@ import { Module } from '@nestjs/common';
 import { getConnectionToken, MongooseModule } from '@nestjs/mongoose';
 
 import { Product, ProductSchema } from '@/modules/product/schemas/product.schema';
-import { PRODUCT_MODELS, ProductModelRegistry } from '@/modules/product/schemas/product-model-registry';
+import {
+    PRODUCT_DETAIL_MODELS,
+    ProductDetailModelRegistry,
+} from '@/modules/product/schemas/product-details-model-registry';
 
 import { ProductController } from './product.controller';
 import { ProductService } from './product.service';
@@ -11,8 +14,8 @@ import { ProductService } from './product.service';
     providers: [
         ProductService,
         {
-            provide: PRODUCT_MODELS,
-            useFactory: ProductModelRegistry,
+            provide: PRODUCT_DETAIL_MODELS,
+            useFactory: ProductDetailModelRegistry,
             inject: [getConnectionToken()],
         },
     ],
