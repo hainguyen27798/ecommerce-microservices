@@ -24,7 +24,11 @@ export class SuccessDto {
                 this.metadata = data.metadata;
                 this.data = plainToInstance(responseDto, data.data);
             } else {
-                this.data = data;
+                if (responseDto) {
+                    this.data = plainToInstance(responseDto, data);
+                } else {
+                    this.data = data;
+                }
             }
         }
     }

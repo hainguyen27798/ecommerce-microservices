@@ -1,10 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Transform } from 'class-transformer';
 
+import { DefaultDataDto } from '@/dto/core';
 import { ProductTypes } from '@/modules/product/constants';
+import { UserDto } from '@/modules/user/dto';
+
+interface Attributes {
+    key: string;
+    value: string;
+}
 
 @Exclude()
-export class ProductDto {
+export class ProductDto extends DefaultDataDto {
     @Expose()
     @ApiProperty()
     name: string;
@@ -35,9 +42,16 @@ export class ProductDto {
 
     @Expose()
     @ApiProperty({ enum: ProductTypes })
-    type: ProductTypes;
+    type: string;
 
     @Expose()
+    @ApiProperty({ type: UserDto })
+    shop: UserDto;
+
+    @Transform((value) => {
+        return value.obj.attributes.reduce((rs: object, attr: Attributes) => ({ ...rs, [attr.key]: attr.value }), {});
+    })
+    @Expose()
     @ApiProperty({ type: Object })
-    attributes: object;
+    attributes: object[];
 }

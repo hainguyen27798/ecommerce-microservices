@@ -1,11 +1,12 @@
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { plainToClass } from 'class-transformer';
 import _ from 'lodash';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 
 import { SuccessDto } from '@/dto/core';
 import { CreateProductDto } from '@/modules/product/dto/create-product.dto';
+import { ProductDto } from '@/modules/product/dto/product.dto';
 import { Product, ProductDocument } from '@/modules/product/schemas/product.schema';
 import { PRODUCT_DETAIL_MODELS } from '@/modules/product/schemas/product-details-model-registry';
 import { TAuthUser } from '@/modules/token/types';
@@ -18,8 +19,17 @@ export class ProductService {
         @InjectModel(Product.name) private readonly _ProductModel: Model<Product>,
     ) {}
 
-    async findProductOwner(shopId: string) {
-        return this._ProductModel.find({ shop: shopId });
+    async findProductOwner(shopId: string, publishedOnly: boolean = false) {
+        const filter: mongoose.FilterQuery<Product> = {
+            shop: shopId,
+        };
+
+        if (publishedOnly) {
+            filter.isDraft = false;
+        }
+
+        const products = await this._ProductModel.find(filter).lean();
+        return new SuccessDto(null, HttpStatus.OK, products, ProductDto);
     }
 
     async create(shop: TAuthUser, createProductDto: CreateProductDto) {
@@ -38,5 +48,55 @@ export class ProductService {
 
         const newProduct: ProductDocument = await this._ProductModel.create(productPayload);
         return new SuccessDto('Create product successfully', HttpStatus.CREATED, newProduct);
+    }
+
+    async getOwnerDraft(shopId: string) {
+        const products = await this._ProductModel
+            .find({
+                shop: shopId,
+                isDraft: true,
+            })
+            .populate('shop', 'name email -_id')
+            .sort({ updatedAt: -1 })
+            .lean();
+        return new SuccessDto(null, HttpStatus.OK, products, ProductDto);
+    }
+
+    async publishProduct(shopId: string, productId: mongoose.Types.ObjectId) {
+        const product = await this._ProductModel.findOneAndUpdate(
+            {
+                _id: productId,
+                shop: shopId,
+                isDraft: true,
+            },
+            {
+                isDraft: false,
+            },
+        );
+
+        if (!product) {
+            throw new NotFoundException('Product draft not found');
+        }
+
+        return new SuccessDto('Publish product successfully', HttpStatus.OK);
+    }
+
+    async unpublishProduct(shopId: string, productId: mongoose.Types.ObjectId) {
+        const product = await this._ProductModel.findOneAndUpdate(
+            {
+                _id: productId,
+                shop: shopId,
+                isDraft: false,
+            },
+            {
+                isDraft: true,
+            },
+        );
+
+        if (!product) {
+            throw new NotFoundException('Product published not found');
+        }
+
+        return new SuccessDto('Un-publish product successfully', HttpStatus.OK);
     }
 }

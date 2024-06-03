@@ -1,7 +1,9 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, ParseBoolPipe, Post, Put, Query } from '@nestjs/common';
+import { ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
+import mongoose from 'mongoose';
 
-import { ResponseDto } from '@/dto/core';
+import { ObjectId } from '@/decorators';
+import { MessageResponseDto, ResponseDto } from '@/dto/core';
 import { Auth } from '@/modules/auth/decorators';
 import { AuthUser } from '@/modules/auth/decorators/auth-user.decorator';
 import { CreateProductDto } from '@/modules/product/dto/create-product.dto';
@@ -19,12 +21,17 @@ export class ProductController {
     constructor(private readonly _ProductService: ProductService) {}
 
     @Get()
+    @ApiQuery({
+        required: false,
+        name: 'publishedOnly',
+        type: Boolean,
+    })
     @ApiOkResponse({
         type: ProductListDto,
     })
     @Auth(UserRoles.SHOP)
-    findOwner(@AuthUser() shop: TAuthUser) {
-        return this._ProductService.findProductOwner(shop.id);
+    findOwner(@AuthUser() shop: TAuthUser, @Query('publishedOnly', new ParseBoolPipe()) publishedOnly: boolean) {
+        return this._ProductService.findProductOwner(shop.id, publishedOnly);
     }
 
     @Post()
@@ -34,5 +41,32 @@ export class ProductController {
     @Auth(UserRoles.SHOP)
     create(@AuthUser() shop: TAuthUser, @Body() createProductDto: CreateProductDto) {
         return this._ProductService.create(shop, createProductDto);
+    }
+
+    @Get('drafts')
+    @ApiOkResponse({
+        type: ProductListDto,
+    })
+    @Auth(UserRoles.SHOP)
+    getOwnerDraft(@AuthUser() shop: TAuthUser) {
+        return this._ProductService.getOwnerDraft(shop.id);
+    }
+
+    @Put('publish/:productId')
+    @ApiOkResponse({
+        type: MessageResponseDto,
+    })
+    @Auth(UserRoles.SHOP)
+    publishProduct(@AuthUser() shop: TAuthUser, @ObjectId('productId') productId: mongoose.Types.ObjectId) {
+        return this._ProductService.publishProduct(shop.id, productId);
+    }
+
+    @Put('unpublish/:productId')
+    @ApiOkResponse({
+        type: MessageResponseDto,
+    })
+    @Auth(UserRoles.SHOP)
+    unpublishProduct(@AuthUser() shop: TAuthUser, @ObjectId('productId') productId: mongoose.Types.ObjectId) {
+        return this._ProductService.unpublishProduct(shop.id, productId);
     }
 }
