@@ -8,6 +8,8 @@ import { AuthModule } from '@/modules/auth/auth.module';
 import { TokenModule } from '@/modules/token/token.module';
 import { UserModule } from '@/modules/user/user.module';
 
+import { RedisModule } from './modules/redis/redis.module';
+
 @Module({
     imports: [
         ConfigModule.forRoot({
@@ -15,6 +17,7 @@ import { UserModule } from '@/modules/user/user.module';
             isGlobal: true,
             load: [Configuration.init],
         }),
+        RedisModule,
         DatabaseModule,
         UserModule,
         TokenModule,
