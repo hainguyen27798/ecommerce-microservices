@@ -53,6 +53,8 @@ export class Product extends AbstractSchema {
 
 export const ProductSchema = SchemaFactory.createForClass(Product);
 
+ProductSchema.index({ name: 'text', description: 'text' });
+
 ProductSchema.pre('save', async function (next) {
     this.slug = slugify(this.name, { lower: true });
     next();

@@ -7,6 +7,7 @@ import mongoose, { Model } from 'mongoose';
 import { SuccessDto } from '@/dto/core';
 import { CreateProductDto } from '@/modules/product/dto/create-product.dto';
 import { ProductDto } from '@/modules/product/dto/product.dto';
+import { SearchProductDto } from '@/modules/product/dto/search-product.dto';
 import { Product, ProductDocument } from '@/modules/product/schemas/product.schema';
 import { PRODUCT_DETAIL_MODELS } from '@/modules/product/schemas/product-details-model-registry';
 import { TAuthUser } from '@/modules/token/types';
@@ -19,16 +20,22 @@ export class ProductService {
         @InjectModel(Product.name) private readonly _ProductModel: Model<Product>,
     ) {}
 
-    async findProductOwner(shopId: string, publishedOnly: boolean = false) {
+    async findProductOwner(shopId: string, searchDro: SearchProductDto) {
         const filter: mongoose.FilterQuery<Product> = {
             shop: shopId,
         };
 
-        if (publishedOnly) {
+        if (searchDro.publishedOnly) {
             filter.isDraft = false;
         }
 
-        const products = await this._ProductModel.find(filter).lean();
+        if (searchDro.search) {
+            filter.$text = {
+                $search: searchDro.search,
+            };
+        }
+
+        const products = await this._ProductModel.find(filter, { score: { $meta: 'textScore' } }).lean();
         return new SuccessDto(null, HttpStatus.OK, products, ProductDto);
     }
 

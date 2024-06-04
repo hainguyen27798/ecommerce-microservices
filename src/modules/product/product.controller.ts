@@ -1,4 +1,4 @@
-import { Body, Controller, Get, ParseBoolPipe, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Put, Query, ValidationPipe } from '@nestjs/common';
 import { ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
 import mongoose from 'mongoose';
 
@@ -8,6 +8,7 @@ import { Auth } from '@/modules/auth/decorators';
 import { AuthUser } from '@/modules/auth/decorators/auth-user.decorator';
 import { CreateProductDto } from '@/modules/product/dto/create-product.dto';
 import { ProductDto } from '@/modules/product/dto/product.dto';
+import { SearchProductDto } from '@/modules/product/dto/search-product.dto';
 import { ProductService } from '@/modules/product/product.service';
 import { TAuthUser } from '@/modules/token/types';
 import { UserRoles } from '@/modules/user/constants';
@@ -30,8 +31,11 @@ export class ProductController {
         type: ProductListDto,
     })
     @Auth(UserRoles.SHOP)
-    findOwner(@AuthUser() shop: TAuthUser, @Query('publishedOnly', new ParseBoolPipe()) publishedOnly: boolean) {
-        return this._ProductService.findProductOwner(shop.id, publishedOnly);
+    findOwner(
+        @AuthUser() shop: TAuthUser,
+        @Query(new ValidationPipe({ transform: true })) searchDro: SearchProductDto,
+    ) {
+        return this._ProductService.findProductOwner(shop.id, searchDro);
     }
 
     @Post()
