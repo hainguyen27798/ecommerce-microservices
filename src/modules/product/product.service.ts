@@ -110,6 +110,10 @@ export class ProductService {
             }
         }
 
+        if (_.isEmpty(productPayload)) {
+            throw new BadRequestException('Invalid update payload');
+        }
+
         const productUpdated = await this._ProductModel
             .findByIdAndUpdate(productId, productPayload, { new: true })
             .lean();
@@ -169,5 +173,22 @@ export class ProductService {
         }
 
         return new SuccessDto('Un-publish product successfully', HttpStatus.OK);
+    }
+
+    async delete(shopId: string, productId: mongoose.Types.ObjectId) {
+        const product = await this._ProductModel
+            .findOneAndDelete({
+                _id: productId,
+                shop: shopId,
+            })
+            .lean();
+
+        if (!product) {
+            throw new NotFoundException('Product not found');
+        }
+
+        await this._ProductDetailsService.delete(productId, product.type);
+
+        return new SuccessDto('Delete product successfully', HttpStatus.OK);
     }
 }

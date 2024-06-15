@@ -15,4 +15,8 @@ export class ProductDetailsService {
     async update(productId: mongoose.Types.ObjectId, type: string, attributes: object) {
         await this._ProductDetailModels[type].findByIdAndUpdate(productId, attributes);
     }
+
+    async delete(productId: mongoose.Types.ObjectId, type: string) {
+        await this._ProductDetailModels[type].findByIdAndDelete(productId);
+    }
 }

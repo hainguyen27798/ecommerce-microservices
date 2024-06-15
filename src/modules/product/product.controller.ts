@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Post, Put, Query, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Patch, Post, Put, Query, ValidationPipe } from '@nestjs/common';
 import { ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
 import mongoose from 'mongoose';
 
@@ -86,5 +86,14 @@ export class ProductController {
     @Auth(UserRoles.SHOP)
     unpublishProduct(@AuthUser() shop: TAuthUser, @ObjectId('productId') productId: mongoose.Types.ObjectId) {
         return this._ProductService.unpublishProduct(shop.id, productId);
+    }
+
+    @Delete(':productId')
+    @ApiOkResponse({
+        type: MessageResponseDto,
+    })
+    @Auth(UserRoles.SHOP)
+    deleteProduct(@AuthUser() shop: TAuthUser, @ObjectId('productId') productId: mongoose.Types.ObjectId) {
+        return this._ProductService.delete(shop.id, productId);
     }
 }
