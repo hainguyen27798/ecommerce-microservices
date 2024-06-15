@@ -3,12 +3,8 @@ import { Exclude, Expose, Transform } from 'class-transformer';
 
 import { DefaultDataDto } from '@/dto/core';
 import { ProductTypes } from '@/modules/product/constants';
+import { TransformProductAttributes } from '@/modules/product/helpers';
 import { UserDto } from '@/modules/user/dto';
-
-interface Attributes {
-    key: string;
-    value: string;
-}
 
 @Exclude()
 export class ProductDto extends DefaultDataDto {
@@ -48,9 +44,7 @@ export class ProductDto extends DefaultDataDto {
     @ApiProperty({ type: UserDto })
     shop: UserDto;
 
-    @Transform((value) => {
-        return value.obj.attributes.reduce((rs: object, attr: Attributes) => ({ ...rs, [attr.key]: attr.value }), {});
-    })
+    @Transform((value) => TransformProductAttributes.arrayToObject(value.obj.attributes))
     @Expose()
     @ApiProperty({ type: Object })
     attributes: object[];

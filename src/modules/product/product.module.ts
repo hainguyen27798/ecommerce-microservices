@@ -9,6 +9,7 @@ import {
 
 import { ProductController } from './product.controller';
 import { ProductService } from './product.service';
+import { ProductDetailsService } from './product-details.service';
 
 @Module({
     providers: [
@@ -18,6 +19,7 @@ import { ProductService } from './product.service';
             useFactory: ProductDetailModelRegistry,
             inject: [getConnectionToken()],
         },
+        ProductDetailsService,
     ],
     controllers: [ProductController],
     imports: [

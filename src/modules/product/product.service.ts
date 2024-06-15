@@ -1,23 +1,29 @@
-import { HttpStatus, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { PartialType } from '@nestjs/swagger';
 import { plainToClass } from 'class-transformer';
+import { validate } from 'class-validator';
 import _ from 'lodash';
 import mongoose, { Model } from 'mongoose';
 
 import { SuccessDto } from '@/dto/core';
+import { formatValidateExceptionHelper } from '@/helpers';
 import { CreateProductDto } from '@/modules/product/dto/create-product.dto';
 import { ProductDto } from '@/modules/product/dto/product.dto';
+import { ProductSubtypeRegistry } from '@/modules/product/dto/product-subtype-registry';
 import { SearchProductDto } from '@/modules/product/dto/search-product.dto';
+import { UpdateProductDto } from '@/modules/product/dto/update-product.dto';
+import { TransformProductAttributes } from '@/modules/product/helpers';
+import { ProductDetailsService } from '@/modules/product/product-details.service';
 import { Product, ProductDocument } from '@/modules/product/schemas/product.schema';
-import { PRODUCT_DETAIL_MODELS } from '@/modules/product/schemas/product-details-model-registry';
 import { TAuthUser } from '@/modules/token/types';
 import { User } from '@/modules/user/schemas/user.schema';
 
 @Injectable()
 export class ProductService {
     constructor(
-        @Inject(PRODUCT_DETAIL_MODELS) private _ProductDetailModels: Record<string, Model<unknown>>,
         @InjectModel(Product.name) private readonly _ProductModel: Model<Product>,
+        private readonly _ProductDetailsService: ProductDetailsService,
     ) {}
 
     async findProductOwner(shopId: string, searchDro: SearchProductDto) {
@@ -40,7 +46,8 @@ export class ProductService {
     }
 
     async create(shop: TAuthUser, createProductDto: CreateProductDto) {
-        const productDetails = await this._ProductDetailModels[createProductDto.type].create(
+        const productDetails = await this._ProductDetailsService.create(
+            createProductDto.type,
             createProductDto.attributes,
         );
 
@@ -48,13 +55,70 @@ export class ProductService {
 
         productPayload['_id'] = productDetails._id;
         productPayload.shop = shop.id as unknown as User;
-        productPayload.attributes = _.map(_.keys(createProductDto.attributes), (key) => ({
-            key,
-            value: createProductDto.attributes[key],
-        }));
+        productPayload.attributes = TransformProductAttributes.objectToArray(createProductDto.attributes);
 
         const newProduct: ProductDocument = await this._ProductModel.create(productPayload);
         return new SuccessDto('Create product successfully', HttpStatus.CREATED, newProduct);
+    }
+
+    private async findOneOwnerProduct(shopId: string, productId: mongoose.Types.ObjectId) {
+        const product = await this._ProductModel.findOne({
+            _id: productId,
+            shop: shopId,
+        });
+
+        if (!product) {
+            throw new NotFoundException('product not found');
+        }
+
+        return product;
+    }
+
+    private async validateProductAttributes(type: string, attribute: object) {
+        // get product attribute schema
+        const objectType = PartialType(ProductSubtypeRegistry[type]);
+
+        const object = plainToClass(objectType, attribute);
+
+        const errors = await validate(object);
+        if (errors.length) {
+            const messages = formatValidateExceptionHelper(errors);
+            throw new BadRequestException(messages);
+        }
+
+        // remove attributes that are undefined
+        return _.pickBy(object, _.identity);
+    }
+
+    async update(shopId: string, productId: mongoose.Types.ObjectId, updateProductDto: UpdateProductDto) {
+        const product = await this.findOneOwnerProduct(shopId, productId);
+
+        const productPayload = plainToClass(Product, updateProductDto);
+
+        // check and validate product attribute
+        if (productPayload.attributes) {
+            const attributes = await this.validateProductAttributes(product.type, productPayload.attributes);
+
+            if (_.isEmpty(attributes)) {
+                delete productPayload.attributes;
+            } else {
+                await this._ProductDetailsService.update(productId, product.type, attributes);
+                productPayload.attributes = TransformProductAttributes.objectToArray({
+                    ...TransformProductAttributes.arrayToObject(product.attributes),
+                    ...attributes,
+                });
+            }
+        }
+
+        const productUpdated = await this._ProductModel
+            .findByIdAndUpdate(productId, productPayload, { new: true })
+            .lean();
+
+        return new SuccessDto(
+            'Update product successfully',
+            HttpStatus.CREATED,
+            plainToClass(ProductDto, productUpdated),
+        );
     }
 
     async getOwnerDraft(shopId: string) {

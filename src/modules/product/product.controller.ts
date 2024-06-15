@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Put, Query, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Put, Query, ValidationPipe } from '@nestjs/common';
 import { ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
 import mongoose from 'mongoose';
 
@@ -9,6 +9,7 @@ import { AuthUser } from '@/modules/auth/decorators/auth-user.decorator';
 import { CreateProductDto } from '@/modules/product/dto/create-product.dto';
 import { ProductDto } from '@/modules/product/dto/product.dto';
 import { SearchProductDto } from '@/modules/product/dto/search-product.dto';
+import { UpdateProductDto } from '@/modules/product/dto/update-product.dto';
 import { ProductService } from '@/modules/product/product.service';
 import { TAuthUser } from '@/modules/token/types';
 import { UserRoles } from '@/modules/user/constants';
@@ -45,6 +46,19 @@ export class ProductController {
     @Auth(UserRoles.SHOP)
     create(@AuthUser() shop: TAuthUser, @Body() createProductDto: CreateProductDto) {
         return this._ProductService.create(shop, createProductDto);
+    }
+
+    @Patch(':id')
+    @ApiOkResponse({
+        type: ProductDetailsDto,
+    })
+    @Auth(UserRoles.SHOP)
+    update(
+        @AuthUser() shop: TAuthUser,
+        @ObjectId() id: mongoose.Types.ObjectId,
+        @Body() updateProductDto: UpdateProductDto,
+    ) {
+        return this._ProductService.update(shop.id, id, updateProductDto);
     }
 
     @Get('drafts')
