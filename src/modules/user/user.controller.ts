@@ -4,6 +4,8 @@ import { Types } from 'mongoose';
 
 import { ObjectId } from '@/decorators';
 import { MessageResponseDto, PageOptionsDto, ResponseDto } from '@/dto/core';
+import { Auth } from '@/modules/auth/decorators';
+import { UserRoles } from '@/modules/user/constants';
 import { RequestUserDto, UserDto } from '@/modules/user/dto';
 import { UpdateUserDto } from '@/modules/user/dto/update-user.dto';
 import { UserService } from '@/modules/user/user.service';
@@ -17,6 +19,7 @@ export class UserController {
     constructor(private _UserService: UserService) {}
 
     @Get()
+    @Auth(UserRoles.SUPERUSER)
     @ApiOperation({ description: 'Get all users' })
     @ApiOkResponse({
         type: UserInfosDto,
