@@ -3,8 +3,8 @@ import { HydratedDocument, Schema as MongooseSchema } from 'mongoose';
 
 import { AbstractSchema } from '@/database/schemas/abstract.schema';
 import { DiscountType } from '@/modules/discount/constants';
-import { User } from '@/modules/user/schemas/user.schema';
 import { ApplyType } from '@/modules/discount/constants/apply-type';
+import { User } from '@/modules/user/schemas/user.schema';
 
 const COLLECTION_NAME = 'discounts';
 

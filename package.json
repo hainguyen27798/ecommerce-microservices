@@ -7,7 +7,7 @@
     "license": "MIT",
     "scripts": {
         "build": "nest build",
-        "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+        "format": "prettier --write \"src/**/*.ts\"",
         "start": "nest start",
         "start:local": "NODE_ENV=local nest start --watch",
         "start:dev": "nest start --watch",
