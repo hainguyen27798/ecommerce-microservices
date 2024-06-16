@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { CqrsModule } from '@nestjs/cqrs';
 import { getConnectionToken, MongooseModule } from '@nestjs/mongoose';
 
 import { Product, ProductSchema } from '@/modules/product/schemas/product.schema';
@@ -29,6 +30,7 @@ import { ProductDetailsService } from './product-details.service';
                 schema: ProductSchema,
             },
         ]),
+        CqrsModule,
     ],
 })
 export class ProductModule {}

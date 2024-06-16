@@ -1,4 +1,5 @@
 import { BadRequestException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { CommandBus } from '@nestjs/cqrs';
 import { InjectModel } from '@nestjs/mongoose';
 import { PartialType } from '@nestjs/swagger';
 import { plainToClass } from 'class-transformer';
@@ -8,6 +9,7 @@ import mongoose, { Model } from 'mongoose';
 
 import { SuccessDto } from '@/dto/core';
 import { formatValidateExceptionHelper } from '@/helpers';
+import { CreateInventoryCommand } from '@/modules/inventory/commands';
 import { CreateProductDto } from '@/modules/product/dto/create-product.dto';
 import { ProductDto } from '@/modules/product/dto/product.dto';
 import { ProductSubtypeRegistry } from '@/modules/product/dto/product-subtype-registry';
@@ -23,6 +25,7 @@ import { User } from '@/modules/user/schemas/user.schema';
 export class ProductService {
     constructor(
         @InjectModel(Product.name) private readonly _ProductModel: Model<Product>,
+        private readonly _CommandBus: CommandBus,
         private readonly _ProductDetailsService: ProductDetailsService,
     ) {}
 
@@ -58,6 +61,16 @@ export class ProductService {
         productPayload.attributes = TransformProductAttributes.objectToArray(createProductDto.attributes);
 
         const newProduct: ProductDocument = await this._ProductModel.create(productPayload);
+
+        // initialize inventory
+        await this._CommandBus.execute(
+            new CreateInventoryCommand({
+                product: newProduct._id.toString(),
+                shop: shop.id,
+                stock: newProduct.quantity,
+            }),
+        );
+
         return new SuccessDto('Create product successfully', HttpStatus.CREATED, newProduct);
     }
 
