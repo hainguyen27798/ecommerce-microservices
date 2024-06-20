@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { getConnectionToken, MongooseModule } from '@nestjs/mongoose';
 
+import { handler } from '@/modules/product/commands';
 import { Product, ProductSchema } from '@/modules/product/schemas/product.schema';
 import {
     PRODUCT_DETAIL_MODELS,
@@ -21,6 +22,7 @@ import { ProductDetailsService } from './product-details.service';
             inject: [getConnectionToken()],
         },
         ProductDetailsService,
+        ...handler,
     ],
     controllers: [ProductController],
     imports: [

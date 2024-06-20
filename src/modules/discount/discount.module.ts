@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { CqrsModule } from '@nestjs/cqrs';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { Discount, DiscountSchema } from '@/modules/discount/schemas/discount.schema';
@@ -15,6 +16,7 @@ import { DiscountService } from './discount.service';
                 schema: DiscountSchema,
             },
         ]),
+        CqrsModule,
     ],
     providers: [DiscountService],
 })

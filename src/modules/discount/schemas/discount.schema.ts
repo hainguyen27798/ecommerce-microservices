@@ -42,7 +42,7 @@ export class Discount extends AbstractSchema {
     @Prop({ type: Number, required: true })
     maxSlotsPerUser: number;
 
-    @Prop({ type: Number, required: true })
+    @Prop({ type: Number, default: 0 })
     minOrderValue: number;
 
     @Prop({ type: MongooseSchema.Types.ObjectId, required: true, ref: User.name })

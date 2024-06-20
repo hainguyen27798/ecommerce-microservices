@@ -204,4 +204,19 @@ export class ProductService {
 
         return new SuccessDto('Delete product successfully', HttpStatus.OK);
     }
+
+    async checkSpecificProducts(shopId: string, productIds: string[]) {
+        try {
+            const productIdsExisting = await this._ProductModel
+                .distinct('_id', {
+                    _id: { $in: productIds },
+                    shop: shopId,
+                })
+                .lean();
+
+            return productIdsExisting.length === productIds.length;
+        } catch (_e) {
+            return false;
+        }
+    }
 }
