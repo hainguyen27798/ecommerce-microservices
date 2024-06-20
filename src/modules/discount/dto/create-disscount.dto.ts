@@ -30,6 +30,12 @@ export class CreateDiscountDto {
     @Expose()
     @ApiProperty()
     @IsString()
+    @IsNotEmpty()
+    code: string;
+
+    @Expose()
+    @ApiProperty()
+    @IsString()
     @IsOptional()
     description: string;
 
@@ -49,7 +55,7 @@ export class CreateDiscountDto {
     @ApiProperty()
     @IsBoolean()
     @IsOptional()
-    isActive: string;
+    isActive: boolean;
 
     @Expose()
     @ApiProperty()
@@ -59,7 +65,7 @@ export class CreateDiscountDto {
 
     @Expose()
     @ValidateIf((obj) => obj.applyType === ApplyType.SPECIFIC)
-    @ApiProperty()
+    @ApiProperty({ isArray: true })
     @IsArray()
     @ArrayNotEmpty()
     specificToProduct: string[];
