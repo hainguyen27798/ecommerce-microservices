@@ -2,12 +2,12 @@ import { BadRequestException, HttpStatus, Injectable, NotFoundException } from '
 import { CommandBus } from '@nestjs/cqrs';
 import { InjectModel } from '@nestjs/mongoose';
 import { PartialType } from '@nestjs/swagger';
-import { plainToClass } from 'class-transformer';
+import { plainToClass, plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import _ from 'lodash';
 import mongoose, { Model } from 'mongoose';
 
-import { SuccessDto } from '@/dto/core';
+import { PageOptionsDto, SuccessDto } from '@/dto/core';
 import { formatValidateExceptionHelper } from '@/helpers';
 import { CreateInventoryCommand } from '@/modules/inventory/commands';
 import { CreateProductDto } from '@/modules/product/dto/create-product.dto';
@@ -20,6 +20,7 @@ import { ProductDetailsService } from '@/modules/product/product-details.service
 import { Product, ProductDocument } from '@/modules/product/schemas/product.schema';
 import { TAuthUser } from '@/modules/token/types';
 import { User } from '@/modules/user/schemas/user.schema';
+import { FilterQueryType } from '@/types';
 
 @Injectable()
 export class ProductService {
@@ -44,7 +45,9 @@ export class ProductService {
             };
         }
 
-        const products = await this._ProductModel.find(filter, { score: { $meta: 'textScore' } }).lean();
+        const products = await this._ProductModel
+            .find(filter, searchDro.search ? { score: { $meta: 'textScore' } } : {})
+            .lean();
         return new SuccessDto(null, HttpStatus.OK, products, ProductDto);
     }
 
@@ -218,5 +221,22 @@ export class ProductService {
         } catch (_e) {
             return false;
         }
+    }
+
+    async searchProducts(filter: FilterQueryType<Product>, pageOption: PageOptionsDto): Promise<ProductDto[]> {
+        const products = await this._ProductModel
+            .find(
+                filter,
+                {},
+                {
+                    limit: pageOption.take,
+                    skip: pageOption.skip,
+                    sort: 'createdAt',
+                },
+            )
+            .lean()
+            .exec();
+
+        return plainToInstance(ProductDto, products);
     }
 }

@@ -1,13 +1,15 @@
-import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
-import { SuccessDto } from '@/dto/core';
+import { PageOptionsDto, SuccessDto } from '@/dto/core';
 import { ApplyType } from '@/modules/discount/constants/apply-type';
 import { CreateDiscountDto, DiscountDto } from '@/modules/discount/dto';
 import { Discount } from '@/modules/discount/schemas/discount.schema';
-import { CheckSpecificProductsCommand } from '@/modules/product/commands';
+import { CheckSpecificProductsCommand, SearchProductsCommand } from '@/modules/product/commands';
+import { ProductDto } from '@/modules/product/dto/product.dto';
+import { TObjectId } from '@/types';
 
 @Injectable()
 export class DiscountService {
@@ -51,5 +53,50 @@ export class DiscountService {
         if (!!discount) {
             throw new BadRequestException('discount is exited');
         }
+    }
+
+    private async getDiscountByCode(shopId: TObjectId, code: string) {
+        const discount = await this._DiscountModel
+            .findOne({
+                shop: shopId,
+                code,
+            })
+            .lean();
+
+        if (!discount) {
+            throw new NotFoundException('discount is not found');
+        }
+
+        return discount;
+    }
+
+    async getProductsByDiscountCodes(shopId: TObjectId, code: string, pageOption: PageOptionsDto) {
+        const discount = await this.getDiscountByCode(shopId, code);
+
+        let products: ProductDto[];
+        if (discount.applyType === ApplyType.SPECIFIC) {
+            products = await this._CommandBus.execute(
+                new SearchProductsCommand(
+                    {
+                        isDraft: false,
+                        shop: shopId,
+                        _id: { $in: discount.specificToProduct },
+                    },
+                    pageOption,
+                ),
+            );
+        } else {
+            products = await this._CommandBus.execute(
+                new SearchProductsCommand(
+                    {
+                        isDraft: false,
+                        shop: shopId,
+                    },
+                    pageOption,
+                ),
+            );
+        }
+
+        return new SuccessDto('', HttpStatus.OK, products);
     }
 }
