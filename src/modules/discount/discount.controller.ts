@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post, Query, ValidationPipe } from '@nestjs/common';
-import { ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiParam, ApiTags } from '@nestjs/swagger';
 
 import { ObjectId } from '@/decorators';
 import { PageOptionsDto, ResponseDto } from '@/dto/core';
@@ -35,11 +35,15 @@ export class DiscountController {
         return this._DiscountService.getDiscountsByShop(shopId, pageOption);
     }
 
-    @Get('code/:discountCode/products')
+    @Get('shop/:shopId/code/:discountCode/products')
+    @ApiParam({
+        name: 'shopId',
+    })
     getProductsByDiscountCodes(
+        @ObjectId('shopId') shopId: TObjectId,
         @Param('discountCode') discountCode: string,
         @Query(new ValidationPipe({ transform: true })) pageOption: PageOptionsDto,
     ) {
-        return this._DiscountService.getProductsByDiscountCodes(discountCode, pageOption);
+        return this._DiscountService.getProductsByDiscountCodes(shopId, discountCode, pageOption);
     }
 }

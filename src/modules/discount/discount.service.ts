@@ -55,9 +55,10 @@ export class DiscountService {
         }
     }
 
-    private async getDiscountByCode(code: string) {
+    private async getDiscountByCode(shopId: TObjectId, code: string) {
         const discount = await this._DiscountModel
             .findOne({
+                shop: shopId,
                 isActive: true,
                 code,
             })
@@ -70,8 +71,8 @@ export class DiscountService {
         return discount;
     }
 
-    async getProductsByDiscountCodes(code: string, pageOption: PageOptionsDto) {
-        const discount = await this.getDiscountByCode(code);
+    async getProductsByDiscountCodes(shopId: TObjectId, code: string, pageOption: PageOptionsDto) {
+        const discount = await this.getDiscountByCode(shopId, code);
 
         let products: ProductDto[];
         if (discount.applyType === ApplyType.SPECIFIC) {
@@ -79,6 +80,7 @@ export class DiscountService {
                 new SearchProductsCommand(
                     {
                         isDraft: false,
+                        shop: shopId,
                         _id: { $in: discount.specificToProduct },
                     },
                     pageOption,
@@ -89,7 +91,7 @@ export class DiscountService {
                 new SearchProductsCommand(
                     {
                         isDraft: false,
-                        shop: discount.shop,
+                        shop: shopId,
                     },
                     pageOption,
                 ),
