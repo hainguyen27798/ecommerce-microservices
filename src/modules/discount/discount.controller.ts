@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Post, Query, ValidationPipe } from '@nestjs/common';
 import { ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 
+import { ObjectId } from '@/decorators';
 import { PageOptionsDto, ResponseDto } from '@/dto/core';
 import { Auth } from '@/modules/auth/decorators';
 import { AuthUser } from '@/modules/auth/decorators/auth-user.decorator';
@@ -8,6 +9,7 @@ import { DiscountService } from '@/modules/discount/discount.service';
 import { CreateDiscountDto, DiscountDto } from '@/modules/discount/dto';
 import { TAuthUser } from '@/modules/token/types';
 import { UserRoles } from '@/modules/user/constants';
+import { TObjectId } from '@/types';
 
 class DiscountDetailDto extends ResponseDto(DiscountDto) {}
 
@@ -25,7 +27,15 @@ export class DiscountController {
         return this._DiscountService.create(shop.id, createDiscountDto);
     }
 
-    @Get(':discountCode/products')
+    @Get('shop/:shopId')
+    getDiscountsByShop(
+        @ObjectId('shopId') shopId: TObjectId,
+        @Query(new ValidationPipe({ transform: true })) pageOption: PageOptionsDto,
+    ) {
+        return this._DiscountService.getDiscountsByShop(shopId, pageOption);
+    }
+
+    @Get('code/:discountCode/products')
     getProductsByDiscountCodes(
         @Param('discountCode') discountCode: string,
         @Query(new ValidationPipe({ transform: true })) pageOption: PageOptionsDto,

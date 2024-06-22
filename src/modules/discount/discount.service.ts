@@ -9,6 +9,7 @@ import { CreateDiscountDto, DiscountDto } from '@/modules/discount/dto';
 import { Discount } from '@/modules/discount/schemas/discount.schema';
 import { CheckSpecificProductsCommand, SearchProductsCommand } from '@/modules/product/commands';
 import { ProductDto } from '@/modules/product/dto/product.dto';
+import { TObjectId } from '@/types';
 
 @Injectable()
 export class DiscountService {
@@ -96,5 +97,24 @@ export class DiscountService {
         }
 
         return new SuccessDto('', HttpStatus.OK, products);
+    }
+
+    async getDiscountsByShop(shopId: TObjectId, pageOption: PageOptionsDto) {
+        const discounts = await this._DiscountModel
+            .find(
+                {
+                    shop: shopId,
+                    isActive: true,
+                },
+                {},
+                {
+                    limit: pageOption.take,
+                    skip: pageOption.skip,
+                    sort: 'createdAt',
+                },
+            )
+            .lean();
+
+        return new SuccessDto('', HttpStatus.OK, discounts, DiscountDto);
     }
 }
