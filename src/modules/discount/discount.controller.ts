@@ -1,7 +1,6 @@
 import { Body, Controller, Get, Param, Post, Query, ValidationPipe } from '@nestjs/common';
-import { ApiCreatedResponse, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 
-import { ObjectId } from '@/decorators';
 import { PageOptionsDto, ResponseDto } from '@/dto/core';
 import { Auth } from '@/modules/auth/decorators';
 import { AuthUser } from '@/modules/auth/decorators/auth-user.decorator';
@@ -9,7 +8,6 @@ import { DiscountService } from '@/modules/discount/discount.service';
 import { CreateDiscountDto, DiscountDto } from '@/modules/discount/dto';
 import { TAuthUser } from '@/modules/token/types';
 import { UserRoles } from '@/modules/user/constants';
-import { TObjectId } from '@/types';
 
 class DiscountDetailDto extends ResponseDto(DiscountDto) {}
 
@@ -27,15 +25,11 @@ export class DiscountController {
         return this._DiscountService.create(shop.id, createDiscountDto);
     }
 
-    @Get(':shopId/:discountCode/products')
-    @ApiParam({
-        name: 'shopId',
-    })
+    @Get(':discountCode/products')
     getProductsByDiscountCodes(
-        @ObjectId('shopId') shopId: TObjectId,
         @Param('discountCode') discountCode: string,
         @Query(new ValidationPipe({ transform: true })) pageOption: PageOptionsDto,
     ) {
-        return this._DiscountService.getProductsByDiscountCodes(shopId, discountCode, pageOption);
+        return this._DiscountService.getProductsByDiscountCodes(discountCode, pageOption);
     }
 }

@@ -9,7 +9,6 @@ import { CreateDiscountDto, DiscountDto } from '@/modules/discount/dto';
 import { Discount } from '@/modules/discount/schemas/discount.schema';
 import { CheckSpecificProductsCommand, SearchProductsCommand } from '@/modules/product/commands';
 import { ProductDto } from '@/modules/product/dto/product.dto';
-import { TObjectId } from '@/types';
 
 @Injectable()
 export class DiscountService {
@@ -55,10 +54,10 @@ export class DiscountService {
         }
     }
 
-    private async getDiscountByCode(shopId: TObjectId, code: string) {
+    private async getDiscountByCode(code: string) {
         const discount = await this._DiscountModel
             .findOne({
-                shop: shopId,
+                isActive: true,
                 code,
             })
             .lean();
@@ -70,8 +69,8 @@ export class DiscountService {
         return discount;
     }
 
-    async getProductsByDiscountCodes(shopId: TObjectId, code: string, pageOption: PageOptionsDto) {
-        const discount = await this.getDiscountByCode(shopId, code);
+    async getProductsByDiscountCodes(code: string, pageOption: PageOptionsDto) {
+        const discount = await this.getDiscountByCode(code);
 
         let products: ProductDto[];
         if (discount.applyType === ApplyType.SPECIFIC) {
@@ -79,7 +78,6 @@ export class DiscountService {
                 new SearchProductsCommand(
                     {
                         isDraft: false,
-                        shop: shopId,
                         _id: { $in: discount.specificToProduct },
                     },
                     pageOption,
@@ -90,7 +88,7 @@ export class DiscountService {
                 new SearchProductsCommand(
                     {
                         isDraft: false,
-                        shop: shopId,
+                        shop: discount.shop,
                     },
                     pageOption,
                 ),
