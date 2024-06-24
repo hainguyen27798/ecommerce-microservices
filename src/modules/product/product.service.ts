@@ -223,16 +223,18 @@ export class ProductService {
         }
     }
 
-    async searchProducts(filter: FilterQueryType<Product>, pageOption: PageOptionsDto): Promise<ProductDto[]> {
+    async searchProducts(filter: FilterQueryType<Product>, pageOption: PageOptionsDto = null): Promise<ProductDto[]> {
         const products = await this._ProductModel
             .find(
                 filter,
                 {},
-                {
-                    limit: pageOption.take,
-                    skip: pageOption.skip,
-                    sort: 'createdAt',
-                },
+                pageOption
+                    ? {
+                          limit: pageOption.take,
+                          skip: pageOption.skip,
+                          sort: 'createdAt',
+                      }
+                    : {},
             )
             .lean()
             .exec();

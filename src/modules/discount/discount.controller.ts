@@ -6,7 +6,7 @@ import { PageOptionsDto, ResponseDto } from '@/dto/core';
 import { Auth } from '@/modules/auth/decorators';
 import { AuthUser } from '@/modules/auth/decorators/auth-user.decorator';
 import { DiscountService } from '@/modules/discount/discount.service';
-import { CreateDiscountDto, DiscountDto } from '@/modules/discount/dto';
+import { CreateDiscountDto, DiscountAmountDto, DiscountDto } from '@/modules/discount/dto';
 import { TAuthUser } from '@/modules/token/types';
 import { UserRoles } from '@/modules/user/constants';
 import { TObjectId } from '@/types';
@@ -45,5 +45,11 @@ export class DiscountController {
         @Query(new ValidationPipe({ transform: true })) pageOption: PageOptionsDto,
     ) {
         return this._DiscountService.getProductsByDiscountCodes(shopId, discountCode, pageOption);
+    }
+
+    @Get('total-after-discount')
+    @Auth(UserRoles.USER)
+    getTotalAfterDiscount(@AuthUser() user: TAuthUser, @Body() discountAmountDto: DiscountAmountDto) {
+        return this._DiscountService.getTotalAfterDiscount(user.id, discountAmountDto);
     }
 }

@@ -2,11 +2,11 @@ import { BadRequestException, ConflictException, HttpStatus, Injectable, NotFoun
 import { InjectModel } from '@nestjs/mongoose';
 import { plainToClass, plainToInstance } from 'class-transformer';
 import _ from 'lodash';
-import mongoose, { Model, Types } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 
 import { Configuration } from '@/config/configuration';
 import { PageOptionsDto, SuccessDto } from '@/dto/core';
-import { BcryptHelper, codeGeneratorHelper } from '@/helpers';
+import { BcryptHelper, codeGeneratorHelper, toObjectId } from '@/helpers';
 import { UserRoles, UserStatus } from '@/modules/user/constants';
 import { RequestUserDto, UpdateUserDto, UserDto } from '@/modules/user/dto';
 import { User, UserDocument } from '@/modules/user/schemas/user.schema';
@@ -38,7 +38,7 @@ export class UserService {
     }
 
     async findUserById(id: string) {
-        const data = await this.aggregateUser({ _id: Types.ObjectId.createFromHexString(id) });
+        const data = await this.aggregateUser({ _id: toObjectId(id) });
         return new SuccessDto(null, HttpStatus.OK, plainToInstance(UserDto, _.first(data.data)));
     }
 

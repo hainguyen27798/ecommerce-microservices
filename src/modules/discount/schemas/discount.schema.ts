@@ -31,7 +31,7 @@ export class Discount extends AbstractSchema {
     applyType: ApplyType;
 
     @Prop({ type: [MongooseSchema.Types.ObjectId], default: [] })
-    specificToProduct: MongooseSchema.Types.ObjectId[];
+    specificToProduct: string[];
 
     @Prop({ type: Number, required: true })
     maxSlots: number;
@@ -49,7 +49,7 @@ export class Discount extends AbstractSchema {
     shop: User;
 
     @Prop({ type: [MongooseSchema.Types.ObjectId], default: [] })
-    usersUsed: MongooseSchema.Types.ObjectId[];
+    usersUsed: string[];
 
     @Prop({ type: String, required: true })
     code: string;

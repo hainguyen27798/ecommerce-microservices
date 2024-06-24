@@ -9,7 +9,7 @@ import { FilterQueryType } from '@/types';
 export class SearchProductsCommand implements ICommand {
     constructor(
         public readonly filter: FilterQueryType<Product>,
-        public readonly pageOption: PageOptionsDto,
+        public readonly pageOption: PageOptionsDto = null,
     ) {}
 }
 

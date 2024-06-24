@@ -5,11 +5,12 @@ import { Model } from 'mongoose';
 
 import { PageOptionsDto, SuccessDto } from '@/dto/core';
 import { ApplyType } from '@/modules/discount/constants/apply-type';
-import { CreateDiscountDto, DiscountDto } from '@/modules/discount/dto';
-import { Discount } from '@/modules/discount/schemas/discount.schema';
+import { CreateDiscountDto, DiscountAmountDto, DiscountDto } from '@/modules/discount/dto';
+import { Discount, DiscountDocument } from '@/modules/discount/schemas/discount.schema';
+import { DiscountValidator } from '@/modules/discount/validators';
 import { CheckSpecificProductsCommand, SearchProductsCommand } from '@/modules/product/commands';
 import { ProductDto } from '@/modules/product/dto/product.dto';
-import { TObjectId } from '@/types';
+import { FilterQueryType, TObjectId } from '@/types';
 
 @Injectable()
 export class DiscountService {
@@ -55,12 +56,11 @@ export class DiscountService {
         }
     }
 
-    private async getDiscountByCode(shopId: TObjectId, code: string) {
+    private async getDiscountByCode(filter: FilterQueryType<Discount>) {
         const discount = await this._DiscountModel
             .findOne({
-                shop: shopId,
+                ...filter,
                 isActive: true,
-                code,
             })
             .lean();
 
@@ -68,11 +68,11 @@ export class DiscountService {
             throw new NotFoundException('discount is not found');
         }
 
-        return discount;
+        return discount as DiscountDocument;
     }
 
     async getProductsByDiscountCodes(shopId: TObjectId, code: string, pageOption: PageOptionsDto) {
-        const discount = await this.getDiscountByCode(shopId, code);
+        const discount = await this.getDiscountByCode({ shop: shopId, code });
 
         let products: ProductDto[];
         if (discount.applyType === ApplyType.SPECIFIC) {
@@ -118,5 +118,39 @@ export class DiscountService {
             .lean();
 
         return new SuccessDto('', HttpStatus.OK, discounts, DiscountDto);
+    }
+
+    async getTotalAfterDiscount(userId: string, discountAmountDto: DiscountAmountDto) {
+        const discount = await this.getDiscountByCode({
+            shop: discountAmountDto.shopId,
+            code: discountAmountDto.discountCode,
+            endDate: { $gt: Date.now() },
+        });
+
+        // set discount info data
+        const discountValidator = new DiscountValidator(discount);
+
+        // verify
+        discountValidator.checkMaxSlots();
+        discountValidator.checkMaxSlotsPerUser(userId);
+
+        // set discount product infos
+        discountValidator.setDiscountProducts(discountAmountDto.product);
+
+        const products = await this._CommandBus.execute(
+            new SearchProductsCommand({
+                _id: { $in: discountValidator.productIds },
+                shop: discountAmountDto.shopId,
+            }),
+        );
+
+        // set product infos
+        discountValidator.setProducts(products);
+
+        // verify
+        discountValidator.verifyProductWithApplyType();
+        discountValidator.verifyMinAmount();
+
+        return new SuccessDto('', HttpStatus.OK, discountValidator.getFinalAmounts());
     }
 }
