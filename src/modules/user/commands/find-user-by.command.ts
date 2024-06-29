@@ -1,6 +1,6 @@
 import { CommandHandler, ICommand, ICommandHandler } from '@nestjs/cqrs';
-import { Types } from 'mongoose';
 
+import { toObjectId } from '@/helpers';
 import { UserDocument } from '@/modules/user/schemas/user.schema';
 import { FilterUserType } from '@/modules/user/types';
 import { UserService } from '@/modules/user/user.service';
@@ -16,7 +16,7 @@ export class FindUserByHandler implements ICommandHandler<FindUserByCommand, Use
     execute(command: FindUserByCommand): Promise<UserDocument> {
         const query = command.query;
         if (query.id) {
-            query.id = Types.ObjectId.createFromHexString(query.id);
+            query.id = toObjectId(query.id);
         }
         return this._UserService.findUserBy(query);
     }
