@@ -7,6 +7,13 @@ import { DiscountProductDto } from '@/modules/discount/dto';
 import { DiscountDocument } from '@/modules/discount/schemas/discount.schema';
 import { ProductDto } from '@/modules/product/dto/product.dto';
 
+type TOrderPrice = {
+    totalOrder: number;
+    totalPrice: number;
+    discountAmount: number;
+    discountType: string;
+};
+
 export class DiscountValidator {
     private _products: ProductDto[];
     private _quantitiesPerProductMap: { [p: string]: number };
@@ -88,15 +95,17 @@ export class DiscountValidator {
     }
 
     private getDiscountPrice() {
-        if (this._discount.applyType === ApplyType.ALL) {
+        if (this._discount.applyType === ApplyType.FOR_BILL) {
             return this.calculatePrice(this._totalAmount, this._discount.value, this._discount.type);
         }
     }
 
-    getFinalAmounts() {
+    getFinalAmounts(): TOrderPrice {
         return {
-            originPrice: this._totalAmount,
-            discountPrice: this.getDiscountPrice(),
+            totalOrder: this._totalAmount,
+            totalPrice: this.getDiscountPrice(),
+            discountAmount: this._discount.value,
+            discountType: this._discount.type,
         };
     }
 }

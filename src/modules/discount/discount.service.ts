@@ -9,7 +9,6 @@ import { CreateDiscountDto, DiscountAmountDto, DiscountDto } from '@/modules/dis
 import { Discount, DiscountDocument } from '@/modules/discount/schemas/discount.schema';
 import { DiscountValidator } from '@/modules/discount/validators';
 import { CheckSpecificProductsCommand, SearchProductsCommand } from '@/modules/product/commands';
-import { ProductDto } from '@/modules/product/dto/product.dto';
 import { FilterQueryType, TObjectId } from '@/types';
 
 @Injectable()
@@ -71,41 +70,12 @@ export class DiscountService {
         return discount as DiscountDocument;
     }
 
-    async getProductsByDiscountCodes(shopId: TObjectId, code: string, pageOption: PageOptionsDto) {
-        const discount = await this.getDiscountByCode({ shop: shopId, code });
-
-        let products: ProductDto[];
-        if (discount.applyType === ApplyType.SPECIFIC) {
-            products = await this._CommandBus.execute(
-                new SearchProductsCommand(
-                    {
-                        isDraft: false,
-                        shop: shopId,
-                        _id: { $in: discount.specificToProduct },
-                    },
-                    pageOption,
-                ),
-            );
-        } else {
-            products = await this._CommandBus.execute(
-                new SearchProductsCommand(
-                    {
-                        isDraft: false,
-                        shop: shopId,
-                    },
-                    pageOption,
-                ),
-            );
-        }
-
-        return new SuccessDto('', HttpStatus.OK, products);
-    }
-
     async getDiscountsByShop(shopId: TObjectId, pageOption: PageOptionsDto) {
         const discounts = await this._DiscountModel
             .find(
                 {
                     shop: shopId,
+                    applyType: ApplyType.FOR_BILL,
                     isActive: true,
                 },
                 {},
@@ -124,7 +94,9 @@ export class DiscountService {
         const discount = await this.getDiscountByCode({
             shop: discountAmountDto.shopId,
             code: discountAmountDto.discountCode,
+            applyType: ApplyType.FOR_BILL,
             endDate: { $gt: Date.now() },
+            startDate: { $lt: Date.now() },
         });
 
         // set discount info data

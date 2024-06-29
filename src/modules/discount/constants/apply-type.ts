@@ -1,4 +1,4 @@
 export enum ApplyType {
-    ALL = 'ALL',
+    FOR_BILL = 'FOR_BILL',
     SPECIFIC = 'SPECIFIC',
 }
