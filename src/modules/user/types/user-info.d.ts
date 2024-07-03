@@ -4,7 +4,7 @@ export type UserInfoType = {
     name: string;
     email: string;
     password: string;
-    role?: UserRoles;
+    roleMapping?: UserRoles;
 };
 
 export type SocialUserInfoType = Omit<UserInfo, 'password' | 'role'> & {

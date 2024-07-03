@@ -1,6 +1,8 @@
 import { BadRequestException, createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { Types } from 'mongoose';
 
+import { toObjectId } from '@/helpers';
+
 export const ObjectId = createParamDecorator((name = 'id', context: ExecutionContext): Types.ObjectId => {
     const request = context.switchToHttp().getRequest();
 
@@ -10,5 +12,5 @@ export const ObjectId = createParamDecorator((name = 'id', context: ExecutionCon
         throw new BadRequestException('Invalid ObjectId');
     }
 
-    return Types.ObjectId.createFromHexString(value);
+    return toObjectId(value);
 });
