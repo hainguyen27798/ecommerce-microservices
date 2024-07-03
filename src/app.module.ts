@@ -5,6 +5,7 @@ import { Configuration } from '@/config/configuration';
 import { DatabaseModule } from '@/database/database.module';
 import { ApiKeyModule } from '@/modules/api-key/api-key.module';
 import { AuthModule } from '@/modules/auth/auth.module';
+import { CartModule } from '@/modules/cart/cart.module';
 import { DiscountModule } from '@/modules/discount/discount.module';
 import { InventoryModule } from '@/modules/inventory/inventory.module';
 import { ProductModule } from '@/modules/product/product.module';
@@ -26,6 +27,7 @@ import { UserModule } from '@/modules/user/user.module';
         ProductModule,
         InventoryModule,
         DiscountModule,
+        CartModule,
     ],
     controllers: [],
     providers: [],
