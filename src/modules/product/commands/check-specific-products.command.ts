@@ -6,6 +6,7 @@ export class CheckSpecificProductsCommand implements ICommand {
     constructor(
         public readonly shopId: string,
         public readonly productIds: string[],
+        public readonly isDraft?: boolean,
     ) {}
 }
 
@@ -14,6 +15,6 @@ export class CheckSpecificProductsHandler implements ICommandHandler<CheckSpecif
     constructor(private _ProductService: ProductService) {}
 
     async execute(command: CheckSpecificProductsCommand): Promise<boolean> {
-        return this._ProductService.checkSpecificProducts(command.shopId, command.productIds);
+        return this._ProductService.checkSpecificProducts(command);
     }
 }
