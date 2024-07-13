@@ -4,7 +4,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { Auth } from '@/modules/auth/decorators';
 import { AuthUser } from '@/modules/auth/decorators/auth-user.decorator';
 import { CartService } from '@/modules/cart/cart.service';
-import { CartProductDto, CreateCartDto } from '@/modules/cart/dto';
+import { CreateCartDto } from '@/modules/cart/dto';
 import { TAuthUser } from '@/modules/token/types';
 import { UserRoles } from '@/modules/user/constants';
 
@@ -23,11 +23,5 @@ export class CartController {
     @Get('products')
     getProductCart(@AuthUser() user: TAuthUser) {
         return this._CartService.getProductCarts(user.id);
-    }
-
-    @Auth(UserRoles.USER)
-    @Post('update-product-to-cart')
-    updateProductToCart(@AuthUser() user: TAuthUser, @Body() cartProduct: CartProductDto) {
-        return this._CartService.updateProductToCart(user.id, cartProduct);
     }
 }

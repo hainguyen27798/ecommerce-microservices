@@ -1,12 +1,13 @@
 import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { InjectModel } from '@nestjs/mongoose';
+import { every } from 'lodash';
 import { Model } from 'mongoose';
 
 import { SuccessDto } from '@/dto/core';
 import { CartState } from '@/modules/cart/constants';
-import { CartDto, CartProductDto, ProductCartDto } from '@/modules/cart/dto';
-import { Cart } from '@/modules/cart/schemas/cart.schema';
+import { CartProductDto, ProductCartDto } from '@/modules/cart/dto';
+import { Cart, CartDocument } from '@/modules/cart/schemas/cart.schema';
 import { CheckSpecificProductsCommand } from '@/modules/product/commands';
 
 @Injectable()
@@ -15,6 +16,10 @@ export class CartService {
         @InjectModel(Cart.name) private readonly _CartModel: Model<Cart>,
         private readonly _CommandBus: CommandBus,
     ) {}
+
+    async getCartById(cartId: string): Promise<CartDocument> {
+        return this._CartModel.findById(cartId);
+    }
 
     async getProductCarts(userId: string) {
         const cart = await this._CartModel
@@ -27,27 +32,16 @@ export class CartService {
     }
 
     async addToCart(userId: string, cartProducts: CartProductDto[]) {
-        const userCart = await this._CartModel.findOne({
-            user: userId,
-        });
-
-        if (!userCart) {
-            const newCart = await this.createCart(userId, cartProducts);
-            return new SuccessDto('Created new cart', HttpStatus.CREATED, newCart, CartDto);
-        }
-
-        await Promise.all(cartProducts.map(async (cartProduct) => this.updateProductCart(userId, cartProduct)));
-
-        return new SuccessDto('Add to cart successfully');
-    }
-
-    async updateProductToCart(userId: string, cartProduct: CartProductDto) {
-        const valid = await this._CommandBus.execute(
-            new CheckSpecificProductsCommand(cartProduct.shop, [cartProduct.product], false),
-        );
+        const valid = await Promise.allSettled(
+            cartProducts.map((cartProduct) =>
+                this._CommandBus.execute(
+                    new CheckSpecificProductsCommand(cartProduct.shop, [cartProduct.product], false),
+                ),
+            ),
+        ).then((results) => every(results, (result) => result['value']));
 
         if (!valid) {
-            throw new BadRequestException('Product is not existed');
+            throw new BadRequestException('Bad cart');
         }
 
         const userCart = await this._CartModel.findOne({
@@ -55,15 +49,12 @@ export class CartService {
         });
 
         if (!userCart) {
-            const newCart = await this.createCart(userId, [cartProduct]);
-            return new SuccessDto('Created new cart', HttpStatus.CREATED, newCart, CartDto);
+            await this.createCart(userId, cartProducts);
+            return new SuccessDto('Created new cart', HttpStatus.CREATED);
         }
 
-        const updated = await this.updateProductCart(userId, cartProduct);
-
-        if (!updated) {
-            await this.deleteProductInCart(userId, cartProduct.product);
-        }
+        await Promise.allSettled(cartProducts.map((cartProduct) => this.updateProductCart(userId, cartProduct)));
+        return new SuccessDto('Update cart', HttpStatus.OK);
     }
 
     private async createCart(userId: string, cartProducts: CartProductDto[]) {
@@ -87,14 +78,24 @@ export class CartService {
     }
 
     private async updateProductCart(userId: string, cartProduct: CartProductDto) {
-        const result = await this._CartModel.findOne({
-            user: userId,
-            state: CartState.ACTIVE,
-            'cartProducts.product': cartProduct.product,
-        });
+        const updated = await this._CartModel.findOneAndUpdate(
+            {
+                user: userId,
+                state: CartState.ACTIVE,
+                'cartProducts.product': cartProduct.product,
+            },
+            {
+                $inc: {
+                    'cartProducts.$.quantity': cartProduct.quantity,
+                },
+            },
+            {
+                new: true,
+            },
+        );
 
-        if (!result) {
-            return this._CartModel.findOneAndUpdate(
+        if (!updated) {
+            await this._CartModel.updateOne(
                 {
                     user: userId,
                     state: CartState.ACTIVE,
@@ -104,21 +105,11 @@ export class CartService {
                         cartProducts: cartProduct,
                     },
                 },
+                {
+                    upsert: true,
+                    new: true,
+                },
             );
         }
-
-        return this._CartModel.findOneAndUpdate(
-            {
-                'cartProducts.product': cartProduct.product,
-                'cartProducts.quantity': {
-                    $gt: cartProduct.quantity < 0 ? -cartProduct.quantity : 0,
-                },
-            },
-            {
-                $inc: {
-                    'cartProducts.$.quantity': cartProduct.quantity,
-                },
-            },
-        );
     }
 }

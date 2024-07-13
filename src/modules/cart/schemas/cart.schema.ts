@@ -15,6 +15,9 @@ export class CartProduct {
     @Prop({ type: MongooseSchema.Types.ObjectId, required: true, ref: Product.name })
     product: Product;
 
+    @Prop({ type: MongooseSchema.Types.ObjectId, required: true, ref: User.name })
+    shop: Product;
+
     @Prop({ required: true })
     quantity: number;
 }
