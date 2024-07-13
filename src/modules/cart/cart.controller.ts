@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { Auth } from '@/modules/auth/decorators';
@@ -17,6 +17,12 @@ export class CartController {
     @Post('add-to-cart')
     addToCart(@AuthUser() user: TAuthUser, @Body() data: CreateCartDto) {
         return this._CartService.addToCart(user.id, data.cartProducts);
+    }
+
+    @Auth(UserRoles.USER)
+    @Get('products')
+    getProductCart(@AuthUser() user: TAuthUser) {
+        return this._CartService.getProductCarts(user.id);
     }
 
     @Auth(UserRoles.USER)

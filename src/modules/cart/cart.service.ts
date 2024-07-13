@@ -5,7 +5,7 @@ import { Model } from 'mongoose';
 
 import { SuccessDto } from '@/dto/core';
 import { CartState } from '@/modules/cart/constants';
-import { CartDto, CartProductDto } from '@/modules/cart/dto';
+import { CartDto, CartProductDto, ProductCartDto } from '@/modules/cart/dto';
 import { Cart } from '@/modules/cart/schemas/cart.schema';
 import { CheckSpecificProductsCommand } from '@/modules/product/commands';
 
@@ -15,6 +15,16 @@ export class CartService {
         @InjectModel(Cart.name) private readonly _CartModel: Model<Cart>,
         private readonly _CommandBus: CommandBus,
     ) {}
+
+    async getProductCarts(userId: string) {
+        const cart = await this._CartModel
+            .findOne({
+                user: userId,
+            })
+            .populate('cartProducts.product')
+            .exec();
+        return new SuccessDto(null, HttpStatus.OK, cart.cartProducts, ProductCartDto);
+    }
 
     async addToCart(userId: string, cartProducts: CartProductDto[]) {
         const userCart = await this._CartModel.findOne({
