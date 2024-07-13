@@ -9,6 +9,7 @@ import { CartState } from '@/modules/cart/constants';
 import { CartProductDto, ProductCartDto } from '@/modules/cart/dto';
 import { Cart, CartDocument } from '@/modules/cart/schemas/cart.schema';
 import { CheckSpecificProductsCommand } from '@/modules/product/commands';
+import { TObjectId } from '@/types';
 
 @Injectable()
 export class CartService {
@@ -65,8 +66,8 @@ export class CartService {
         });
     }
 
-    private async deleteProductInCart(userId: string, productId: string) {
-        return this._CartModel.findOneAndUpdate(
+    async deleteProductInCart(userId: string, productId: TObjectId) {
+        const cart = await this._CartModel.findOneAndUpdate(
             {
                 user: userId,
                 'cartProducts.product': productId,
@@ -75,6 +76,12 @@ export class CartService {
                 $pull: { cartProducts: { product: productId } },
             },
         );
+
+        if (!cart) {
+            throw new BadRequestException('Product invalid');
+        }
+
+        return new SuccessDto('Deleted product in cart', HttpStatus.OK);
     }
 
     private async updateProductCart(userId: string, cartProduct: CartProductDto) {
