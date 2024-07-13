@@ -208,12 +208,14 @@ export class ProductService {
         return new SuccessDto('Delete product successfully', HttpStatus.OK);
     }
 
-    async checkSpecificProducts(shopId: string, productIds: string[]) {
+    async checkSpecificProducts(args: { shopId: string; productIds: string[]; isDraft?: boolean }) {
+        const { productIds, shopId, ...otherFilters } = args;
         try {
             const productIdsExisting = await this._ProductModel
                 .distinct('_id', {
                     _id: { $in: productIds },
                     shop: shopId,
+                    ...otherFilters,
                 })
                 .lean();
 

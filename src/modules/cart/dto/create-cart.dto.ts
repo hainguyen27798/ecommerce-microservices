@@ -11,6 +11,11 @@ export class CartProductDto {
 
     @Expose()
     @ApiProperty()
+    @IsMongoId()
+    shop: string;
+
+    @Expose()
+    @ApiProperty()
     @IsNumber()
     quantity: number;
 }
