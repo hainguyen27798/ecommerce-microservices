@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { CqrsModule } from '@nestjs/cqrs';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { Cart, CartProductSchema } from '@/modules/cart/schemas/cart.schema';
@@ -15,6 +16,7 @@ import { CartService } from './cart.service';
                 schema: CartProductSchema,
             },
         ]),
+        CqrsModule,
     ],
     providers: [CartService],
 })

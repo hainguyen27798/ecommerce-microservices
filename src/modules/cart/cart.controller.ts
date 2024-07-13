@@ -15,5 +15,7 @@ export class CartController {
 
     @Auth(UserRoles.USER)
     @Post('add-to-cart')
-    addToCart(@AuthUser() user: TAuthUser, @Body() data: CreateCartDto) {}
+    addToCart(@AuthUser() user: TAuthUser, @Body() data: CreateCartDto) {
+        return this._CartService.addToCart(user.id, data.cartProducts);
+    }
 }

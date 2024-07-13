@@ -3,11 +3,11 @@ import { Exclude, Expose, Type } from 'class-transformer';
 import { ArrayNotEmpty, IsArray, IsMongoId, IsNumber, ValidateNested } from 'class-validator';
 
 @Exclude()
-class CartProductDto {
+export class CartProductDto {
     @Expose()
     @ApiProperty()
     @IsMongoId()
-    id: string;
+    product: string;
 
     @Expose()
     @ApiProperty()
@@ -23,5 +23,5 @@ export class CreateCartDto {
     @ArrayNotEmpty()
     @Type(() => CartProductDto)
     @ValidateNested({ each: true })
-    cartProduct: string;
+    cartProducts: CartProductDto[];
 }
