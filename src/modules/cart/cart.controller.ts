@@ -1,12 +1,14 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
+import { ObjectId } from '@/decorators';
 import { Auth } from '@/modules/auth/decorators';
 import { AuthUser } from '@/modules/auth/decorators/auth-user.decorator';
 import { CartService } from '@/modules/cart/cart.service';
-import { CartProductDto, CreateCartDto } from '@/modules/cart/dto';
+import { CreateCartDto, UpdateCartProductDto } from '@/modules/cart/dto';
 import { TAuthUser } from '@/modules/token/types';
 import { UserRoles } from '@/modules/user/constants';
+import { TObjectId } from '@/types';
 
 @Controller('carts')
 @ApiTags('Carts')
@@ -20,14 +22,20 @@ export class CartController {
     }
 
     @Auth(UserRoles.USER)
+    @Post('product-quantity')
+    updateProductQuantityToCart(@AuthUser() user: TAuthUser, @Body() cartProduct: UpdateCartProductDto) {
+        return this._CartService.updateProductQuantityToCart(user.id, cartProduct);
+    }
+
+    @Auth(UserRoles.USER)
     @Get('products')
     getProductCart(@AuthUser() user: TAuthUser) {
         return this._CartService.getProductCarts(user.id);
     }
 
     @Auth(UserRoles.USER)
-    @Post('update-product-to-cart')
-    updateProductToCart(@AuthUser() user: TAuthUser, @Body() cartProduct: CartProductDto) {
-        return this._CartService.updateProductToCart(user.id, cartProduct);
+    @Delete('product/:productId')
+    deleteProductInCart(@AuthUser() user: TAuthUser, @ObjectId('productId') productId: TObjectId) {
+        return this._CartService.deleteProductInCart(user.id, productId);
     }
 }

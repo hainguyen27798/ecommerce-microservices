@@ -9,11 +9,15 @@ import { User } from '@/modules/user/schemas/user.schema';
 const COLLECTION_NAME = 'carts';
 
 export type CartDocument = HydratedDocument<Cart>;
+export type CartProductDocument = HydratedDocument<CartProduct>;
 
 @Schema({ _id: false })
 export class CartProduct {
     @Prop({ type: MongooseSchema.Types.ObjectId, required: true, ref: Product.name })
     product: Product;
+
+    @Prop({ type: MongooseSchema.Types.ObjectId, required: true, ref: User.name })
+    shop: Product;
 
     @Prop({ required: true })
     quantity: number;

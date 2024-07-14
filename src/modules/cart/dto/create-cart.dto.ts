@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude, Expose, Type } from 'class-transformer';
-import { ArrayNotEmpty, IsArray, IsMongoId, IsNumber, ValidateNested } from 'class-validator';
+import { ArrayNotEmpty, IsArray, IsMongoId, IsNumber, Min, ValidateNested } from 'class-validator';
 
 @Exclude()
 export class CartProductDto {
@@ -14,6 +14,15 @@ export class CartProductDto {
     @IsMongoId()
     shop: string;
 
+    @Expose()
+    @ApiProperty()
+    @IsNumber()
+    @Min(1)
+    quantity: number;
+}
+
+@Exclude()
+export class UpdateCartProductDto extends CartProductDto {
     @Expose()
     @ApiProperty()
     @IsNumber()
