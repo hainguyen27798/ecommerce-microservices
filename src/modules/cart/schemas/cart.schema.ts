@@ -9,6 +9,7 @@ import { User } from '@/modules/user/schemas/user.schema';
 const COLLECTION_NAME = 'carts';
 
 export type CartDocument = HydratedDocument<Cart>;
+export type CartProductDocument = HydratedDocument<CartProduct>;
 
 @Schema({ _id: false })
 export class CartProduct {

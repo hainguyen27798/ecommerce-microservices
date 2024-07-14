@@ -5,9 +5,10 @@ import { every } from 'lodash';
 import { Model } from 'mongoose';
 
 import { SuccessDto } from '@/dto/core';
+import { toObjectId } from '@/helpers';
 import { CartState } from '@/modules/cart/constants';
 import { CartProductDto, ProductCartDto } from '@/modules/cart/dto';
-import { Cart, CartDocument } from '@/modules/cart/schemas/cart.schema';
+import { Cart, CartDocument, CartProductDocument } from '@/modules/cart/schemas/cart.schema';
 import { CheckSpecificProductsCommand } from '@/modules/product/commands';
 import { TObjectId } from '@/types';
 
@@ -84,22 +85,49 @@ export class CartService {
         return new SuccessDto('Deleted product in cart', HttpStatus.OK);
     }
 
-    private async updateProductCart(userId: string, cartProduct: CartProductDto) {
-        const updated = await this._CartModel.findOneAndUpdate(
+    async updateProductQuantityToCart(userId: string, cartProduct: CartProductDto) {
+        const cartProductFound = await this.getProductInCart(userId, cartProduct);
+
+        if (!cartProductFound) {
+            throw new BadRequestException('Can not update cart product');
+        }
+
+        if (cartProductFound.quantity + cartProduct.quantity <= 0) {
+            await this.deleteProductInCart(userId, toObjectId(cartProduct.product));
+            return new SuccessDto('Updated cart', HttpStatus.OK);
+        }
+
+        await this.increaseQuantityToCart(userId, cartProduct);
+        return new SuccessDto('Updated cart', HttpStatus.OK);
+    }
+
+    private async getProductInCart(userId: string, cartProduct: CartProductDto): Promise<CartProductDocument | null> {
+        const user = toObjectId(userId);
+        const productId = toObjectId(cartProduct.product);
+        const shopId = toObjectId(cartProduct.shop);
+        const cart = await this._CartModel.aggregate([
+            { $match: { user } },
+            { $unwind: '$cartProducts' },
             {
-                user: userId,
-                state: CartState.ACTIVE,
-                'cartProducts.product': cartProduct.product,
-            },
-            {
-                $inc: {
-                    'cartProducts.$.quantity': cartProduct.quantity,
+                $match: {
+                    'cartProducts.product': productId,
+                    'cartProducts.shop': shopId,
                 },
             },
-            {
-                new: true,
-            },
-        );
+            { $project: { _id: 0, cartProducts: 1 } },
+        ]);
+
+        console.log(cart);
+
+        if (!cart?.length) {
+            return null;
+        }
+
+        return cart[0].cartProducts;
+    }
+
+    private async updateProductCart(userId: string, cartProduct: CartProductDto) {
+        const updated = await this.increaseQuantityToCart(userId, cartProduct);
 
         if (!updated) {
             await this._CartModel.updateOne(
@@ -118,5 +146,23 @@ export class CartService {
                 },
             );
         }
+    }
+
+    private async increaseQuantityToCart(userId: string, cartProduct: CartProductDto) {
+        return this._CartModel.findOneAndUpdate(
+            {
+                user: userId,
+                state: CartState.ACTIVE,
+                'cartProducts.product': cartProduct.product,
+            },
+            {
+                $inc: {
+                    'cartProducts.$.quantity': cartProduct.quantity,
+                },
+            },
+            {
+                new: true,
+            },
+        );
     }
 }

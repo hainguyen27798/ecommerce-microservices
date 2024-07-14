@@ -22,6 +22,14 @@ export class CartProductDto {
 }
 
 @Exclude()
+export class UpdateCartProductDto extends CartProductDto {
+    @Expose()
+    @ApiProperty()
+    @IsNumber()
+    quantity: number;
+}
+
+@Exclude()
 export class CreateCartDto {
     @Expose()
     @ApiProperty({ type: CartProductDto, isArray: true })

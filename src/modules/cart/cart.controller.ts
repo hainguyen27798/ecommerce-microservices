@@ -5,7 +5,7 @@ import { ObjectId } from '@/decorators';
 import { Auth } from '@/modules/auth/decorators';
 import { AuthUser } from '@/modules/auth/decorators/auth-user.decorator';
 import { CartService } from '@/modules/cart/cart.service';
-import { CreateCartDto } from '@/modules/cart/dto';
+import { CreateCartDto, UpdateCartProductDto } from '@/modules/cart/dto';
 import { TAuthUser } from '@/modules/token/types';
 import { UserRoles } from '@/modules/user/constants';
 import { TObjectId } from '@/types';
@@ -19,6 +19,12 @@ export class CartController {
     @Post('add-to-cart')
     addToCart(@AuthUser() user: TAuthUser, @Body() data: CreateCartDto) {
         return this._CartService.addToCart(user.id, data.cartProducts);
+    }
+
+    @Auth(UserRoles.USER)
+    @Post('product-quantity')
+    updateProductQuantityToCart(@AuthUser() user: TAuthUser, @Body() cartProduct: UpdateCartProductDto) {
+        return this._CartService.updateProductQuantityToCart(user.id, cartProduct);
     }
 
     @Auth(UserRoles.USER)
