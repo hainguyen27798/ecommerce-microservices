@@ -42,6 +42,7 @@ export class ProductDto extends DefaultDataDto {
 
     @Expose()
     @ApiProperty({ type: UserDto })
+    @Transform((value) => value.obj.shop?.toString() || value.obj.shop)
     shop: UserDto;
 
     @Transform((value) => TransformProductAttributes.arrayToObject(value.obj.attributes))

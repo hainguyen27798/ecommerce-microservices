@@ -8,10 +8,6 @@ import { ProductCartDto } from '@/modules/cart/dto/product-cart.dto';
 export class CartDto extends DefaultDataDto {
     @Expose()
     @ApiProperty()
-    @Transform((value) =>
-        plainToInstance(ProductCartDto, value.obj.cartProducts, {
-            excludeExtraneousValues: true,
-        }),
-    )
+    @Transform((value) => plainToInstance(ProductCartDto, value.obj.cartProducts))
     cartDetails: ProductCartDto[];
 }

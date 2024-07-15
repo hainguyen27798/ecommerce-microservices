@@ -19,8 +19,11 @@ export class CartService {
         private readonly _CommandBus: CommandBus,
     ) {}
 
-    async getCartById(cartId: string): Promise<CartDocument> {
-        return this._CartModel.findById(cartId);
+    async getCartBy(cartId: string, userId: string): Promise<CartDocument> {
+        return this._CartModel.findOne({
+            _id: cartId,
+            user: userId,
+        });
     }
 
     async getMyCart(userId: string) {
