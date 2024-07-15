@@ -1,18 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Exclude, Expose, Transform } from 'class-transformer';
+import { Exclude, Expose, plainToInstance, Transform } from 'class-transformer';
 
 import { DefaultDataDto } from '@/dto/core';
-import { ProductDto } from '@/modules/product/dto/product.dto';
+import { ProductCartDto } from '@/modules/cart/dto/product-cart.dto';
 
 @Exclude()
 export class CartDto extends DefaultDataDto {
     @Expose()
     @ApiProperty()
-    @Transform((value) => value.obj.user)
-    userId: string;
-
-    @Expose()
-    @ApiProperty()
-    @Transform((value) => value.obj.cartProducts)
-    products: ProductDto[];
+    @Transform((value) =>
+        plainToInstance(ProductCartDto, value.obj.cartProducts, {
+            excludeExtraneousValues: true,
+        }),
+    )
+    cartDetails: ProductCartDto[];
 }

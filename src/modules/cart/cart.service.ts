@@ -7,7 +7,7 @@ import { Model } from 'mongoose';
 import { SuccessDto } from '@/dto/core';
 import { toObjectId } from '@/helpers';
 import { CartState } from '@/modules/cart/constants';
-import { CartProductDto, ProductCartDto } from '@/modules/cart/dto';
+import { CartDto, CartProductDto } from '@/modules/cart/dto';
 import { Cart, CartDocument, CartProductDocument } from '@/modules/cart/schemas/cart.schema';
 import { CheckSpecificProductsCommand } from '@/modules/product/commands';
 import { TObjectId } from '@/types';
@@ -23,14 +23,14 @@ export class CartService {
         return this._CartModel.findById(cartId);
     }
 
-    async getProductCarts(userId: string) {
+    async getMyCart(userId: string) {
         const cart = await this._CartModel
             .findOne({
                 user: userId,
             })
             .populate('cartProducts.product')
             .exec();
-        return new SuccessDto(null, HttpStatus.OK, cart.cartProducts, ProductCartDto);
+        return new SuccessDto(null, HttpStatus.OK, cart, CartDto);
     }
 
     async addToCart(userId: string, cartProducts: CartProductDto[]) {
