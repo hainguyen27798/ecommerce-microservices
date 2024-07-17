@@ -5,10 +5,11 @@ import { Model } from 'mongoose';
 
 import { PageOptionsDto, SuccessDto } from '@/dto/core';
 import { ApplyType } from '@/modules/discount/constants/apply-type';
-import { CreateDiscountDto, DiscountAmountDto, DiscountDto } from '@/modules/discount/dto';
+import { CreateDiscountDto, DiscountDto } from '@/modules/discount/dto';
 import { Discount, DiscountDocument } from '@/modules/discount/schemas/discount.schema';
-import { DiscountValidator } from '@/modules/discount/validators';
-import { CheckSpecificProductsCommand, SearchProductsCommand } from '@/modules/product/commands';
+import { CheckoutDiscountType } from '@/modules/discount/types';
+import { CheckoutDiscountValidator } from '@/modules/discount/validators';
+import { CheckSpecificProductsCommand } from '@/modules/product/commands';
 import { FilterQueryType, TObjectId } from '@/types';
 
 @Injectable()
@@ -90,39 +91,26 @@ export class DiscountService {
         return new SuccessDto('', HttpStatus.OK, discounts, DiscountDto);
     }
 
-    async getTotalAfterDiscount(userId: string, discountAmountDto: DiscountAmountDto) {
+    async calculateDiscountAmount(userId: string, checkoutDiscount: CheckoutDiscountType) {
         const discount = await this.getDiscountByCode({
-            shop: discountAmountDto.shopId,
-            code: discountAmountDto.discountCode,
+            shop: checkoutDiscount.shopId,
+            code: checkoutDiscount.discountCode,
             applyType: ApplyType.FOR_BILL,
             endDate: { $gt: Date.now() },
             startDate: { $lt: Date.now() },
         });
 
         // set discount info data
-        const discountValidator = new DiscountValidator(discount);
+        const checkoutDiscountValidator = new CheckoutDiscountValidator(discount);
 
         // verify
-        discountValidator.checkMaxSlots();
-        discountValidator.checkMaxSlotsPerUser(userId);
+        checkoutDiscountValidator
+            .checkMaxSlots()
+            .checkMaxSlotsPerUser(userId)
+            .setProducts(checkoutDiscount.products)
+            .verifyProductWithApplyType()
+            .verifyMinAmount();
 
-        // set discount product infos
-        discountValidator.setDiscountProducts(discountAmountDto.product);
-
-        const products = await this._CommandBus.execute(
-            new SearchProductsCommand({
-                _id: { $in: discountValidator.productIds },
-                shop: discountAmountDto.shopId,
-            }),
-        );
-
-        // set product infos
-        discountValidator.setProducts(products);
-
-        // verify
-        discountValidator.verifyProductWithApplyType();
-        discountValidator.verifyMinAmount();
-
-        return new SuccessDto('', HttpStatus.OK, discountValidator.getFinalAmounts());
+        return checkoutDiscountValidator.getFinalAmounts();
     }
 }

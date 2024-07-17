@@ -1,21 +1,14 @@
 import { BadRequestException } from '@nestjs/common';
-import { every, filter, keys, reduce, size } from 'lodash';
+import { every, filter, map, reduce, size } from 'lodash';
 
 import { DiscountType } from '@/modules/discount/constants';
 import { ApplyType } from '@/modules/discount/constants/apply-type';
-import { DiscountProductDto } from '@/modules/discount/dto';
 import { DiscountDocument } from '@/modules/discount/schemas/discount.schema';
-import { ProductDto } from '@/modules/product/dto/product.dto';
+import { CheckoutTotalPriceType, ProductCheckoutDiscountType } from '@/modules/discount/types';
+import { ProductDocument } from '@/modules/product/schemas/product.schema';
 
-type TOrderPrice = {
-    totalOrder: number;
-    totalPrice: number;
-    discountAmount: number;
-    discountType: string;
-};
-
-export class DiscountValidator {
-    private _products: ProductDto[];
+export class CheckoutDiscountValidator {
+    private _products: ProductDocument[];
     private _quantitiesPerProductMap: { [p: string]: number };
     private _totalAmount: number;
 
@@ -36,22 +29,24 @@ export class DiscountValidator {
         return this;
     }
 
-    setProducts(products: ProductDto[]) {
-        this._products = products;
+    setProducts(productCheckoutDiscounts: ProductCheckoutDiscountType[]) {
+        this._products = map(productCheckoutDiscounts, 'product');
+
+        this._quantitiesPerProductMap = reduce(
+            productCheckoutDiscounts,
+            (rs, productCheckoutDiscount) => ({
+                ...rs,
+                [productCheckoutDiscount.product.id]: productCheckoutDiscount.quantity,
+            }),
+            {},
+        );
+
         this._totalAmount = reduce(
             this._products,
             (total, product) => total + product.price * this._quantitiesPerProductMap[product.id.toString()],
             0,
         );
-        return this;
-    }
 
-    setDiscountProducts(discountProducts: DiscountProductDto[]) {
-        this._quantitiesPerProductMap = reduce(
-            discountProducts,
-            (rs, discountProduct) => ({ ...rs, [discountProduct.id]: discountProduct.quantity }),
-            {},
-        );
         return this;
     }
 
@@ -79,10 +74,6 @@ export class DiscountValidator {
         }
     }
 
-    get productIds() {
-        return keys(this._quantitiesPerProductMap);
-    }
-
     private calculatePrice(originPrice: number, amount: number, type: DiscountType) {
         let discountPrice = originPrice;
         if (type === DiscountType.FIXED_AMOUNT) {
@@ -100,7 +91,7 @@ export class DiscountValidator {
         }
     }
 
-    getFinalAmounts(): TOrderPrice {
+    getFinalAmounts(): CheckoutTotalPriceType {
         return {
             totalOrder: this._totalAmount,
             totalPrice: this.getDiscountPrice(),
