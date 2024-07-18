@@ -1,4 +1,5 @@
 import { AuthOptions } from 'express-oauth2-jwt-bearer';
+import { RedisOptions } from 'ioredis';
 
 import { ENV_MODE } from '@/constants';
 
@@ -18,4 +19,5 @@ export type TConfig = {
         pass: string;
     };
     auth0Config: AuthOptions;
+    redis: RedisOptions;
 };

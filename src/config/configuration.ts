@@ -26,6 +26,11 @@ export class Configuration {
                     issuerBaseURL: process.env['AUTH0_ISSUER_BASE_URL'],
                     audience: process.env['AUTH0_AUDIENCE'],
                 },
+                redis: {
+                    host: process.env['REDIS_HOST'],
+                    port: parseInt(process.env['REDIS_PORT'], 10),
+                    password: process.env['REDIS_PASSWORD'],
+                },
             };
         }
         return Configuration._config;
