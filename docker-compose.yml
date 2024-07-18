@@ -7,7 +7,7 @@ services:
         build:
             dockerfile: .docker/mongo/Dockerfile
         container_name: ecommerce-db
-        restart: always
+        restart: unless-stopped
         environment:
             MONGO_INITDB_ROOT_USERNAME: $MONGO_USERNAME
             MONGO_INITDB_ROOT_PASSWORD: $MONGO_PASSWORD
@@ -33,5 +33,17 @@ services:
             - ecommerce_network
         volumes:
             - ecommerce_db:/data/db
+    redis:
+        container_name: ecommerce-redis
+        image: redis:alpine
+        restart: unless-stopped
+        ports:
+            - '${REDIS_PORT}:6379'
+        volumes:
+            - redis_db:/data
+        command: redis-server --save 20 1 --loglevel warning --requirepass $REDIS_PASSWORD
+        networks:
+            - ecommerce_network
 volumes:
     ecommerce_db:
+    redis_db:
