@@ -107,6 +107,7 @@ export class DiscountService {
         checkoutDiscountValidator
             .checkMaxSlots()
             .checkMaxSlotsPerUser(userId)
+            .setShopId(checkoutDiscount.shopId)
             .setProducts(checkoutDiscount.products)
             .verifyProductWithApplyType()
             .verifyMinAmount();

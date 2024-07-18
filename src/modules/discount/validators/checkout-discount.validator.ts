@@ -1,5 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import { every, filter, map, reduce, size } from 'lodash';
+import { every, filter, map, reduce, round, size } from 'lodash';
 
 import { DiscountType } from '@/modules/discount/constants';
 import { ApplyType } from '@/modules/discount/constants/apply-type';
@@ -11,6 +11,7 @@ export class CheckoutDiscountValidator {
     private _products: ProductDocument[];
     private _quantitiesPerProductMap: { [p: string]: number };
     private _totalAmount: number;
+    private _shopId: string;
 
     constructor(private readonly _discount: DiscountDocument) {}
 
@@ -74,6 +75,11 @@ export class CheckoutDiscountValidator {
         }
     }
 
+    setShopId(shopId: string) {
+        this._shopId = shopId;
+        return this;
+    }
+
     private calculatePrice(originPrice: number, amount: number, type: DiscountType) {
         let discountPrice = originPrice;
         if (type === DiscountType.FIXED_AMOUNT) {
@@ -82,7 +88,7 @@ export class CheckoutDiscountValidator {
             discountPrice = discountPrice * (1 - amount / 100);
         }
 
-        return discountPrice > 0 ? discountPrice : 0;
+        return discountPrice > 0 ? round(discountPrice, 3) : 0;
     }
 
     private getDiscountPrice() {
@@ -93,10 +99,11 @@ export class CheckoutDiscountValidator {
 
     getFinalAmounts(): CheckoutTotalPriceType {
         return {
-            totalOrder: this._totalAmount,
+            totalOrder: round(this._totalAmount, 3),
             totalPrice: this.getDiscountPrice(),
             discountAmount: this._discount.value,
             discountType: this._discount.type,
+            shop: this._shopId,
         };
     }
 }

@@ -3,4 +3,5 @@ export type CheckoutTotalPriceType = {
     totalPrice: number;
     discountAmount: number;
     discountType: string;
+    shop: string;
 };
