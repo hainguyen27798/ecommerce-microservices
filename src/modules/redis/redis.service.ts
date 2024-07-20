@@ -21,7 +21,7 @@ export class RedisService {
         });
     }
 
-    async acquireLock<T = unknown>(key: string, callBack: () => Promise<T>): Promise<{ key: string; value: T }> {
+    async acquireLock<T = unknown>(key: string, callBack: () => Promise<T>): Promise<{ key: string; value: T } | null> {
         for (let i = 0; i < 3; i++) {
             // add lock
             const result = await this._RedisClient.setnx(key, EXPIRE_TIMEOUT);

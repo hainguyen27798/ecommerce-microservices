@@ -51,9 +51,12 @@ export class CheckoutService {
                         ),
                     ),
                 );
-                keyLocks.push(res.key);
 
-                if (!res.value) {
+                if (res?.key) {
+                    keyLocks.push(res.key);
+                }
+
+                if (!res || !res.value) {
                     await session.abortTransaction();
                     Logger.debug('Transaction - Rollback');
                     throw new BadRequestException('Please check your cart.');
