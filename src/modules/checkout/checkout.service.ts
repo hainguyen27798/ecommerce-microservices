@@ -118,10 +118,10 @@ export class CheckoutService {
 
         return checkoutByShops.reduce(
             (rs, shop) => ({
-                totalOrder: rs.totalOrder + shop.totalOrder,
+                totalPriceAfterDiscount: rs.totalPriceAfterDiscount + shop.totalPriceAfterDiscount,
                 totalPrice: rs.totalPrice + shop.totalPrice,
             }),
-            { totalOrder: 0, totalPrice: 0 },
+            { totalPriceAfterDiscount: 0, totalPrice: 0 },
         );
     }
 
@@ -131,10 +131,10 @@ export class CheckoutService {
     ): Promise<CheckoutTotalPriceType> {
         if (!checkoutData.discountCode) {
             return new Promise((resolve) => {
-                const totalOrder = sumBy(checkoutData.products, (product) => product.quantity * product.product.price);
+                const totalPrice = sumBy(checkoutData.products, (product) => product.quantity * product.product.price);
                 resolve({
-                    totalOrder,
-                    totalPrice: totalOrder,
+                    totalPrice,
+                    totalPriceAfterDiscount: totalPrice,
                     discountAmount: null,
                     discountType: null,
                     shop: checkoutData.shopId,

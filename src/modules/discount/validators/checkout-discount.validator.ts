@@ -99,8 +99,8 @@ export class CheckoutDiscountValidator {
 
     getFinalAmounts(): CheckoutTotalPriceType {
         return {
-            totalOrder: round(this._totalAmount, 3),
-            totalPrice: this.getDiscountPrice(),
+            totalPrice: round(this._totalAmount, 3),
+            totalPriceAfterDiscount: this.getDiscountPrice(),
             discountAmount: this._discount.value,
             discountType: this._discount.type,
             shop: this._shopId,
