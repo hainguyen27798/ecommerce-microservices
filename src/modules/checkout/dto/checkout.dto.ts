@@ -40,3 +40,17 @@ export class CheckoutDto {
     @ValidateNested({ each: true })
     discountApplies: DiscountApplyDto[];
 }
+
+@Exclude()
+export class CheckoutCommitDto extends CheckoutDto {
+    @Expose()
+    @ApiProperty()
+    @IsString()
+    toAddress: string;
+
+    @Expose()
+    @ApiProperty()
+    @IsString()
+    @IsOptional()
+    note: string;
+}
