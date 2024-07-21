@@ -114,4 +114,27 @@ export class DiscountService {
 
         return checkoutDiscountValidator.getFinalAmounts();
     }
+
+    async calculateAndRegisterUserToDiscount(userId: string, checkoutDiscount: CheckoutDiscountType) {
+        const bill = await this.calculateDiscountAmount(userId, checkoutDiscount);
+
+        // add user to user used
+        await this._DiscountModel.updateOne(
+            {
+                shop: checkoutDiscount.shopId,
+                code: checkoutDiscount.discountCode,
+            },
+            {
+                $inc: {
+                    maxSlots: -1,
+                    slotsUsed: 1,
+                },
+                $push: {
+                    usersUsed: userId,
+                },
+            },
+        );
+
+        return bill;
+    }
 }

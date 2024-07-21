@@ -16,7 +16,7 @@ export class CheckoutDiscountValidator {
     constructor(private readonly _discount: DiscountDocument) {}
 
     checkMaxSlots() {
-        if (this._discount.maxSlots <= this._discount.slotsUsed) {
+        if (this._discount.maxSlots < this._discount.slotsUsed) {
             throw new BadRequestException('Discount is out');
         }
         return this;
