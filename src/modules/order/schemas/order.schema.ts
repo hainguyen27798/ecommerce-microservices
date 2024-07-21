@@ -18,10 +18,19 @@ export class OrderProduct {
     product: Product;
 
     @Prop({ type: MongooseSchema.Types.ObjectId, required: true, ref: User.name })
-    shop: Product;
+    shop: User;
 
     @Prop({ required: true })
     quantity: number;
+}
+
+@Schema({ _id: false })
+export class DiscountInfo {
+    @Prop({ type: MongooseSchema.Types.ObjectId, required: true, ref: User.name })
+    shop: User;
+
+    @Prop({ required: true })
+    code: string;
 }
 
 @Schema({ _id: false })
@@ -82,8 +91,14 @@ export class Order extends AbstractSchema {
     @Prop({ type: PaymentInfo })
     paymentInfo: PaymentInfo;
 
+    @Prop({ type: [DiscountInfo], default: [] })
+    discountInfos: DiscountInfo[];
+
     @Prop({ type: String, enum: OrderStatus, default: OrderStatus.PENDING })
     status: OrderStatus;
+
+    @Prop()
+    note: string;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

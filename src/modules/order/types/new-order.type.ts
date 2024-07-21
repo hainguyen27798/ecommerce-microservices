@@ -15,6 +15,16 @@ type ShippingInfo = {
     address: string;
 };
 
+type PaymentInfo = {
+    paymentMethod: string;
+    paymentStatus: string;
+};
+
+type DiscountInfo = {
+    shop: string;
+    code: string;
+};
+
 export type NewOrderType = {
     user: string;
     orderProducts: OrderProduct[];
@@ -23,4 +33,7 @@ export type NewOrderType = {
     feeShip: number;
     shippingInfo: ShippingInfo;
     status: OrderStatus;
+    paymentInfo: PaymentInfo;
+    discountInfos: DiscountInfo[];
+    note?: string;
 };
