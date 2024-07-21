@@ -5,7 +5,7 @@ import { PartialType } from '@nestjs/swagger';
 import { plainToClass, plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import _ from 'lodash';
-import mongoose, { Model } from 'mongoose';
+import mongoose, { ClientSession, Model } from 'mongoose';
 
 import { PageOptionsDto, SuccessDto } from '@/dto/core';
 import { formatValidateExceptionHelper } from '@/helpers';
@@ -255,5 +255,15 @@ export class ProductService {
                 })),
             ],
         });
+    }
+
+    async verifyCheckoutProduct(product: CheckoutProductType, session: ClientSession | null = null) {
+        return this._ProductModel
+            .find({
+                isDraft: false,
+                shop: product.shop,
+                _id: product.product,
+            })
+            .session(session);
     }
 }
