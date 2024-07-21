@@ -120,8 +120,6 @@ export class CartService {
             { $project: { _id: 0, cartProducts: 1 } },
         ]);
 
-        console.log(cart);
-
         if (!cart?.length) {
             return null;
         }
@@ -167,5 +165,24 @@ export class CartService {
                 new: true,
             },
         );
+    }
+
+    async pullProductToCart(userId: string, cartProduct: CartProductDto) {
+        const data = await this._CartModel.updateOne(
+            {
+                user: userId,
+                state: CartState.ACTIVE,
+                'cartProducts.product': cartProduct.product,
+                'cartProducts.quantity': cartProduct.quantity,
+            },
+            {
+                $pull: { cartProducts: { product: cartProduct.product } },
+            },
+            {
+                new: true,
+            },
+        );
+
+        return data.modifiedCount === 1;
     }
 }
