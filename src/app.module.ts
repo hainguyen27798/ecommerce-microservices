@@ -9,11 +9,11 @@ import { CartModule } from '@/modules/cart/cart.module';
 import { CheckoutModule } from '@/modules/checkout/checkout.module';
 import { DiscountModule } from '@/modules/discount/discount.module';
 import { InventoryModule } from '@/modules/inventory/inventory.module';
+import { OrderModule } from '@/modules/order/order.module';
 import { ProductModule } from '@/modules/product/product.module';
+import { RedisModule } from '@/modules/redis/redis.module';
 import { TokenModule } from '@/modules/token/token.module';
 import { UserModule } from '@/modules/user/user.module';
-
-import { RedisModule } from './modules/redis/redis.module';
 
 @Module({
     imports: [
@@ -33,6 +33,7 @@ import { RedisModule } from './modules/redis/redis.module';
         DiscountModule,
         CartModule,
         CheckoutModule,
+        OrderModule,
     ],
     controllers: [],
     providers: [],
