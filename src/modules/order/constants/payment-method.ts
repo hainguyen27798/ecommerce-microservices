@@ -1,0 +1,5 @@
+export enum PaymentMethod {
+    GOOGLE_PAY = 'GOOGLE_PAY',
+    CREDIT_DEBIT_CARD = 'CREDIT_DEBIT_CARD',
+    PAYMENT_ON_DELIVERY = 'PAYMENT_ON_DELIVERY',
+}

@@ -2,12 +2,12 @@ import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { InjectModel } from '@nestjs/mongoose';
 import { every } from 'lodash';
-import { Model } from 'mongoose';
+import { ClientSession, Model } from 'mongoose';
 
 import { SuccessDto } from '@/dto/core';
 import { toObjectId } from '@/helpers';
 import { CartState } from '@/modules/cart/constants';
-import { CartProductDto, ProductCartDto } from '@/modules/cart/dto';
+import { CartDto, CartProductDto } from '@/modules/cart/dto';
 import { Cart, CartDocument, CartProductDocument } from '@/modules/cart/schemas/cart.schema';
 import { CheckSpecificProductsCommand } from '@/modules/product/commands';
 import { TObjectId } from '@/types';
@@ -19,18 +19,21 @@ export class CartService {
         private readonly _CommandBus: CommandBus,
     ) {}
 
-    async getCartById(cartId: string): Promise<CartDocument> {
-        return this._CartModel.findById(cartId);
+    async getCartBy(cartId: string, userId: string): Promise<CartDocument> {
+        return this._CartModel.findOne({
+            _id: cartId,
+            user: userId,
+        });
     }
 
-    async getProductCarts(userId: string) {
+    async getMyCart(userId: string) {
         const cart = await this._CartModel
             .findOne({
                 user: userId,
             })
             .populate('cartProducts.product')
             .exec();
-        return new SuccessDto(null, HttpStatus.OK, cart.cartProducts, ProductCartDto);
+        return new SuccessDto(null, HttpStatus.OK, cart, CartDto);
     }
 
     async addToCart(userId: string, cartProducts: CartProductDto[]) {
@@ -117,8 +120,6 @@ export class CartService {
             { $project: { _id: 0, cartProducts: 1 } },
         ]);
 
-        console.log(cart);
-
         if (!cart?.length) {
             return null;
         }
@@ -164,5 +165,25 @@ export class CartService {
                 new: true,
             },
         );
+    }
+
+    async pullProductToCart(userId: string, cartProduct: CartProductDto, session: ClientSession | null = null) {
+        const data = await this._CartModel.updateOne(
+            {
+                user: userId,
+                state: CartState.ACTIVE,
+                'cartProducts.product': cartProduct.product,
+                'cartProducts.quantity': cartProduct.quantity,
+            },
+            {
+                $pull: { cartProducts: { product: cartProduct.product } },
+            },
+            {
+                new: true,
+                session,
+            },
+        );
+
+        return data.modifiedCount === 1;
     }
 }

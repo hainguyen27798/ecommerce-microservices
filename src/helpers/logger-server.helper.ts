@@ -64,7 +64,7 @@ export class LoggerServerHelper {
         // init winston logger
         if (!LoggerServerHelper.logger) {
             LoggerServerHelper.logger = winston.createLogger({
-                level: 'http',
+                level: 'debug',
                 transports: [
                     new winston.transports.Console({
                         format,

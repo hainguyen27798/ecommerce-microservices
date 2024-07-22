@@ -1,28 +1,22 @@
 import { BadRequestException } from '@nestjs/common';
-import { every, filter, keys, reduce, size } from 'lodash';
+import { every, filter, map, reduce, round, size } from 'lodash';
 
 import { DiscountType } from '@/modules/discount/constants';
 import { ApplyType } from '@/modules/discount/constants/apply-type';
-import { DiscountProductDto } from '@/modules/discount/dto';
 import { DiscountDocument } from '@/modules/discount/schemas/discount.schema';
-import { ProductDto } from '@/modules/product/dto/product.dto';
+import { CheckoutTotalPriceType, ProductCheckoutDiscountType } from '@/modules/discount/types';
+import { ProductDocument } from '@/modules/product/schemas/product.schema';
 
-type TOrderPrice = {
-    totalOrder: number;
-    totalPrice: number;
-    discountAmount: number;
-    discountType: string;
-};
-
-export class DiscountValidator {
-    private _products: ProductDto[];
+export class CheckoutDiscountValidator {
+    private _products: ProductDocument[];
     private _quantitiesPerProductMap: { [p: string]: number };
     private _totalAmount: number;
+    private _shopId: string;
 
     constructor(private readonly _discount: DiscountDocument) {}
 
     checkMaxSlots() {
-        if (this._discount.maxSlots <= this._discount.slotsUsed) {
+        if (this._discount.maxSlots < this._discount.slotsUsed) {
             throw new BadRequestException('Discount is out');
         }
         return this;
@@ -36,22 +30,24 @@ export class DiscountValidator {
         return this;
     }
 
-    setProducts(products: ProductDto[]) {
-        this._products = products;
+    setProducts(productCheckoutDiscounts: ProductCheckoutDiscountType[]) {
+        this._products = map(productCheckoutDiscounts, 'product');
+
+        this._quantitiesPerProductMap = reduce(
+            productCheckoutDiscounts,
+            (rs, productCheckoutDiscount) => ({
+                ...rs,
+                [productCheckoutDiscount.product.id]: productCheckoutDiscount.quantity,
+            }),
+            {},
+        );
+
         this._totalAmount = reduce(
             this._products,
             (total, product) => total + product.price * this._quantitiesPerProductMap[product.id.toString()],
             0,
         );
-        return this;
-    }
 
-    setDiscountProducts(discountProducts: DiscountProductDto[]) {
-        this._quantitiesPerProductMap = reduce(
-            discountProducts,
-            (rs, discountProduct) => ({ ...rs, [discountProduct.id]: discountProduct.quantity }),
-            {},
-        );
         return this;
     }
 
@@ -79,8 +75,9 @@ export class DiscountValidator {
         }
     }
 
-    get productIds() {
-        return keys(this._quantitiesPerProductMap);
+    setShopId(shopId: string) {
+        this._shopId = shopId;
+        return this;
     }
 
     private calculatePrice(originPrice: number, amount: number, type: DiscountType) {
@@ -91,7 +88,7 @@ export class DiscountValidator {
             discountPrice = discountPrice * (1 - amount / 100);
         }
 
-        return discountPrice > 0 ? discountPrice : 0;
+        return discountPrice > 0 ? round(discountPrice, 3) : 0;
     }
 
     private getDiscountPrice() {
@@ -100,12 +97,13 @@ export class DiscountValidator {
         }
     }
 
-    getFinalAmounts(): TOrderPrice {
+    getFinalAmounts(): CheckoutTotalPriceType {
         return {
-            totalOrder: this._totalAmount,
-            totalPrice: this.getDiscountPrice(),
+            totalPrice: round(this._totalAmount, 3),
+            totalPriceAfterDiscount: this.getDiscountPrice(),
             discountAmount: this._discount.value,
             discountType: this._discount.type,
+            shop: this._shopId,
         };
     }
 }

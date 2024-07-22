@@ -1,1 +1,1 @@
-export * from './discount.validator';
+export * from './checkout-discount.validator';

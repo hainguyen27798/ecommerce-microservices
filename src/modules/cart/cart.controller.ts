@@ -28,9 +28,9 @@ export class CartController {
     }
 
     @Auth(UserRoles.USER)
-    @Get('products')
-    getProductCart(@AuthUser() user: TAuthUser) {
-        return this._CartService.getProductCarts(user.id);
+    @Get('me')
+    getMyCart(@AuthUser() user: TAuthUser) {
+        return this._CartService.getMyCart(user.id);
     }
 
     @Auth(UserRoles.USER)

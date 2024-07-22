@@ -5,7 +5,7 @@ import { PartialType } from '@nestjs/swagger';
 import { plainToClass, plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import _ from 'lodash';
-import mongoose, { Model } from 'mongoose';
+import mongoose, { ClientSession, Model } from 'mongoose';
 
 import { PageOptionsDto, SuccessDto } from '@/dto/core';
 import { formatValidateExceptionHelper } from '@/helpers';
@@ -18,6 +18,7 @@ import { UpdateProductDto } from '@/modules/product/dto/update-product.dto';
 import { TransformProductAttributes } from '@/modules/product/helpers';
 import { ProductDetailsService } from '@/modules/product/product-details.service';
 import { Product, ProductDocument } from '@/modules/product/schemas/product.schema';
+import { CheckoutProductType } from '@/modules/product/types';
 import { TAuthUser } from '@/modules/token/types';
 import { User } from '@/modules/user/schemas/user.schema';
 import { FilterQueryType } from '@/types';
@@ -242,5 +243,27 @@ export class ProductService {
             .exec();
 
         return plainToInstance(ProductDto, products);
+    }
+
+    async verifyCheckoutProducts(products: CheckoutProductType[]) {
+        return this._ProductModel.find({
+            $or: [
+                ...products.map((product) => ({
+                    isDraft: false,
+                    shop: product.shop,
+                    _id: product.product,
+                })),
+            ],
+        });
+    }
+
+    async verifyCheckoutProduct(product: CheckoutProductType, session: ClientSession | null = null) {
+        return this._ProductModel
+            .findOne({
+                isDraft: false,
+                shop: product.shop,
+                _id: product.product,
+            })
+            .session(session);
     }
 }
