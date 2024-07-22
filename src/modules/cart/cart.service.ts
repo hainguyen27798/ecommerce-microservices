@@ -2,7 +2,7 @@ import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { InjectModel } from '@nestjs/mongoose';
 import { every } from 'lodash';
-import { Model } from 'mongoose';
+import { ClientSession, Model } from 'mongoose';
 
 import { SuccessDto } from '@/dto/core';
 import { toObjectId } from '@/helpers';
@@ -167,7 +167,7 @@ export class CartService {
         );
     }
 
-    async pullProductToCart(userId: string, cartProduct: CartProductDto) {
+    async pullProductToCart(userId: string, cartProduct: CartProductDto, session: ClientSession | null = null) {
         const data = await this._CartModel.updateOne(
             {
                 user: userId,
@@ -180,6 +180,7 @@ export class CartService {
             },
             {
                 new: true,
+                session,
             },
         );
 

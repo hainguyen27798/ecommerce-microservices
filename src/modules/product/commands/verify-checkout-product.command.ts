@@ -13,7 +13,7 @@ export class VerifyCheckoutProductCommand implements ICommand {
 }
 
 @CommandHandler(VerifyCheckoutProductCommand)
-export class VerifyCheckoutProductHandler implements ICommandHandler<VerifyCheckoutProductCommand, ProductDocument[]> {
+export class VerifyCheckoutProductHandler implements ICommandHandler<VerifyCheckoutProductCommand, ProductDocument> {
     constructor(private _ProductService: ProductService) {}
 
     async execute(command: VerifyCheckoutProductCommand) {

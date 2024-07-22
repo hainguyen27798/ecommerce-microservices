@@ -1,7 +1,7 @@
 import { BadRequestException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { ClientSession, Model } from 'mongoose';
 
 import { PageOptionsDto, SuccessDto } from '@/dto/core';
 import { ApplyType } from '@/modules/discount/constants/apply-type';
@@ -115,7 +115,11 @@ export class DiscountService {
         return checkoutDiscountValidator.getFinalAmounts();
     }
 
-    async calculateAndRegisterUserToDiscount(userId: string, checkoutDiscount: CheckoutDiscountType) {
+    async calculateAndRegisterUserToDiscount(
+        userId: string,
+        checkoutDiscount: CheckoutDiscountType,
+        session: ClientSession | null = null,
+    ) {
         const bill = await this.calculateDiscountAmount(userId, checkoutDiscount);
 
         // add user to user used
@@ -133,6 +137,7 @@ export class DiscountService {
                     usersUsed: userId,
                 },
             },
+            { session },
         );
 
         return bill;

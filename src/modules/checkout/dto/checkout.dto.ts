@@ -1,8 +1,21 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude, Expose, Type } from 'class-transformer';
-import { ArrayNotEmpty, IsArray, IsMongoId, IsOptional, IsString, ValidateNested } from 'class-validator';
+import {
+    ArrayNotEmpty,
+    IsArray,
+    IsEnum,
+    IsMongoId,
+    IsNotEmpty,
+    IsNotEmptyObject,
+    IsOptional,
+    IsPhoneNumber,
+    IsString,
+    ValidateNested,
+} from 'class-validator';
 
 import { CartProductDto } from '@/modules/cart/dto';
+import { PaymentMethod } from '@/modules/order/constants/payment-method';
+import { PaymentStatus } from '@/modules/order/constants/payment-status';
 
 @Exclude()
 export class DiscountApplyDto {
@@ -42,11 +55,72 @@ export class CheckoutDto {
 }
 
 @Exclude()
-export class CheckoutCommitDto extends CheckoutDto {
+export class ShippingInfoDto {
+    @Expose()
+    @ApiProperty()
+    @IsPhoneNumber()
+    @IsNotEmpty()
+    phone: string;
+
     @Expose()
     @ApiProperty()
     @IsString()
-    toAddress: string;
+    @IsNotEmpty()
+    country: string;
+
+    @Expose()
+    @ApiProperty()
+    @IsString()
+    @IsNotEmpty()
+    province: string;
+
+    @Expose()
+    @ApiProperty()
+    @IsString()
+    @IsNotEmpty()
+    district: string;
+
+    @Expose()
+    @ApiProperty()
+    @IsString()
+    @IsNotEmpty()
+    commune: string;
+
+    @Expose()
+    @ApiProperty()
+    @IsString()
+    @IsNotEmpty()
+    address: string;
+}
+
+@Exclude()
+export class PaymentMethodDto {
+    @Expose()
+    @ApiProperty()
+    @IsEnum(PaymentMethod)
+    paymentMethod: string;
+
+    @Expose()
+    @ApiProperty()
+    @IsEnum(PaymentStatus)
+    paymentStatus: string;
+}
+
+@Exclude()
+export class CheckoutCommitDto extends CheckoutDto {
+    @Expose()
+    @ApiProperty({ type: PaymentMethodDto })
+    @IsNotEmptyObject()
+    @Type(() => PaymentMethodDto)
+    @ValidateNested({ always: true })
+    paymentInfo: PaymentMethodDto;
+
+    @Expose()
+    @ApiProperty({ type: ShippingInfoDto })
+    @Type(() => ShippingInfoDto)
+    @IsNotEmptyObject()
+    @ValidateNested({ always: true })
+    shippingInfo: ShippingInfoDto;
 
     @Expose()
     @ApiProperty()

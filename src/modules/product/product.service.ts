@@ -259,7 +259,7 @@ export class ProductService {
 
     async verifyCheckoutProduct(product: CheckoutProductType, session: ClientSession | null = null) {
         return this._ProductModel
-            .find({
+            .findOne({
                 isDraft: false,
                 shop: product.shop,
                 _id: product.product,
