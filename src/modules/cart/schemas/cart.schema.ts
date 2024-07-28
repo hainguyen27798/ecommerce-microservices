@@ -17,7 +17,7 @@ export class CartProduct {
     product: Product;
 
     @Prop({ type: MongooseSchema.Types.ObjectId, required: true, ref: User.name })
-    shop: Product;
+    shop: User;
 
     @Prop({ required: true })
     quantity: number;
