@@ -1,5 +1,6 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Post } from '@nestjs/common';
 
+import { ObjectId } from '@/decorators';
 import { Auth } from '@/modules/auth/decorators';
 import { AuthUser } from '@/modules/auth/decorators/auth-user.decorator';
 import { CommentService } from '@/modules/comment/comment.service';
@@ -15,5 +16,15 @@ export class CommentController {
     @Post()
     createComment(@AuthUser() user: TAuthUser, @Body() data: CreateCommentDto) {
         return this._CommentService.createComment(user.id, data);
+    }
+
+    @Auth(UserRoles.USER, UserRoles.SHOP)
+    @Delete(':productId/:commentId')
+    deleteComment(
+        @AuthUser() user: TAuthUser,
+        @ObjectId('productId') productId: string,
+        @ObjectId('commentId') commentId: string,
+    ) {
+        return this._CommentService.deleteComment(user.id, productId, commentId);
     }
 }

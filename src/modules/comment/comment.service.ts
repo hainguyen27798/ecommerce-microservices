@@ -115,4 +115,75 @@ export class CommentService {
             Logger.debug('Comment Transaction - End');
         }
     }
+
+    async deleteComment(userId: string, productId: string, commentId: string) {
+        const currentComment = await this._CommentModel.findOne({
+            _id: commentId,
+            product: productId,
+            user: userId,
+        });
+
+        if (!currentComment) {
+            throw new BadRequestException('Could not delete comment');
+        }
+
+        const session = await this._Connection.startSession();
+
+        try {
+            session.startTransaction();
+            Logger.debug('Delete Comment Transaction - Start');
+
+            await this._CommentModel.deleteMany(
+                {
+                    left: { $gte: currentComment.left },
+                    right: { $lte: currentComment.right },
+                },
+                { session },
+            );
+
+            const distance = currentComment.right - currentComment.left + 1;
+
+            await this._CommentModel.updateMany(
+                {
+                    product: productId,
+                    left: { $gt: currentComment.left },
+                },
+                {
+                    $inc: {
+                        left: -distance,
+                    },
+                },
+                {
+                    session,
+                },
+            );
+
+            await this._CommentModel.updateMany(
+                {
+                    product: productId,
+                    right: { $gt: currentComment.right },
+                },
+                {
+                    $inc: {
+                        right: -distance,
+                    },
+                },
+                {
+                    session,
+                },
+            );
+
+            await session.commitTransaction();
+            Logger.debug('Delete Comment Transaction - Commit');
+
+            return new SuccessDto('Deleted comment', HttpStatus.OK);
+        } catch (_e) {
+            await session.abortTransaction();
+            Logger.debug(`Delete Comment Transaction - Rollback (reason: ${_e.message})`);
+            throw new BadRequestException('Could not delete comment');
+        } finally {
+            await session.endSession();
+            Logger.debug('Delete Comment Transaction - End');
+        }
+    }
 }
