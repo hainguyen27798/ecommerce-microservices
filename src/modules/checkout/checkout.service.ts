@@ -41,7 +41,7 @@ export class CheckoutService {
 
         try {
             session.startTransaction();
-            Logger.debug('Transaction - Start');
+            Logger.debug('Checkout Transaction - Start');
 
             // check and checkout products from inventories
             for (const cartProduct of checkoutData.cartProducts) {
@@ -96,7 +96,7 @@ export class CheckoutService {
 
                 if (!res || !res.value) {
                     await session.abortTransaction();
-                    Logger.debug('Transaction - Rollback');
+                    Logger.debug('Checkout Transaction - Rollback');
                     throw new BadRequestException('Please check your cart.');
                 }
             }
@@ -124,13 +124,12 @@ export class CheckoutService {
                 bill = this.getBill(checkoutByShops);
             } catch (_e) {
                 await session.abortTransaction();
-                Logger.debug('Transaction - Rollback (reason: discount infos incorrect)');
+                Logger.debug('Checkout Transaction - Rollback (reason: discount infos incorrect)');
                 throw new BadRequestException('Please check discount infos.');
             }
 
             // create order
             try {
-                console.log(bill);
                 await this._CommandBus.execute(
                     new CreateNewOrderCommand(
                         {
@@ -151,15 +150,15 @@ export class CheckoutService {
             } catch (_e) {
                 await session.abortTransaction();
                 Logger.error(_e.message);
-                Logger.debug('Transaction - Rollback (reason: create order failed)');
+                Logger.debug('Checkout Transaction - Rollback (reason: create order failed)');
                 throw new BadRequestException('Please check your cart.');
             }
 
             await session.commitTransaction();
-            Logger.debug('Transaction - Commit');
+            Logger.debug('Checkout Transaction - Commit');
         } finally {
             await session.endSession();
-            Logger.debug('Transaction - End');
+            Logger.debug('Checkout Transaction - End');
         }
 
         return new SuccessDto('checkout successfully', HttpStatus.OK, bill);
