@@ -8,8 +8,6 @@ import _ from 'lodash';
 import mongoose, { ClientSession, Connection, Model } from 'mongoose';
 
 import { PageOptionsDto, SuccessDto } from '@/dto/core';
-import { formatValidateExceptionHelper } from '@/helpers';
-import { CreateInventoryCommand } from '@/modules/inventory/commands';
 import { formatValidateExceptionHelper, toObjectId } from '@/helpers';
 import { CreateInventoryCommand, DeleteInventoryCommand } from '@/modules/inventory/commands';
 import { CreateProductDto } from '@/modules/product/dto/create-product.dto';
