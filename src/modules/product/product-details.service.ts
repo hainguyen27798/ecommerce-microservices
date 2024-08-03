@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import mongoose, { Model } from 'mongoose';
+import mongoose, { ClientSession, Model } from 'mongoose';
 
 import { ProductTypes } from '@/modules/product/constants';
 import { PRODUCT_DETAIL_MODELS } from '@/modules/product/schemas/product-details-model-registry';
@@ -16,7 +16,7 @@ export class ProductDetailsService {
         await this._ProductDetailModels[type].findByIdAndUpdate(productId, attributes);
     }
 
-    async delete(productId: mongoose.Types.ObjectId, type: string) {
-        await this._ProductDetailModels[type].findByIdAndDelete(productId);
+    async delete(productId: mongoose.Types.ObjectId, type: string, session: ClientSession | null = null) {
+        await this._ProductDetailModels[type].findByIdAndDelete(productId, { session });
     }
 }
