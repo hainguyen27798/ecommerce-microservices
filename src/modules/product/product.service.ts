@@ -1,15 +1,17 @@
-import { BadRequestException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
-import { InjectModel } from '@nestjs/mongoose';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { PartialType } from '@nestjs/swagger';
 import { plainToClass, plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import _ from 'lodash';
-import mongoose, { ClientSession, Model } from 'mongoose';
+import mongoose, { ClientSession, Connection, Model, Types } from 'mongoose';
 
 import { PageOptionsDto, SuccessDto } from '@/dto/core';
-import { formatValidateExceptionHelper } from '@/helpers';
-import { CreateInventoryCommand } from '@/modules/inventory/commands';
+import { formatValidateExceptionHelper, toObjectId } from '@/helpers';
+import { CreateInventoryCommand, DeleteInventoryCommand } from '@/modules/inventory/commands';
+import { PushNotificationToSystemCommand } from '@/modules/notification/commands';
+import { NotificationType } from '@/modules/notification/constants';
 import { CreateProductDto } from '@/modules/product/dto/create-product.dto';
 import { ProductDto } from '@/modules/product/dto/product.dto';
 import { ProductSubtypeRegistry } from '@/modules/product/dto/product-subtype-registry';
@@ -29,6 +31,7 @@ export class ProductService {
         @InjectModel(Product.name) private readonly _ProductModel: Model<Product>,
         private readonly _CommandBus: CommandBus,
         private readonly _ProductDetailsService: ProductDetailsService,
+        @InjectConnection() private readonly _Connection: Connection,
     ) {}
 
     async findProductOwner(shopId: string, searchDro: SearchProductDto) {
@@ -74,6 +77,21 @@ export class ProductService {
                 stock: newProduct.quantity,
             }),
         );
+
+        this._CommandBus
+            .execute(
+                new PushNotificationToSystemCommand({
+                    type: NotificationType.SHOP_NOTIFICATION,
+                    senderId: shop.id,
+                    receiverId: new Types.ObjectId().toString(),
+                    content: `Shop ${shop.name} created a new product`,
+                    options: {
+                        shop: shop.name,
+                        productName: newProduct.name,
+                    },
+                }),
+            )
+            .then();
 
         return new SuccessDto('Create product successfully', HttpStatus.CREATED, newProduct);
     }
@@ -194,7 +212,7 @@ export class ProductService {
 
     async delete(shopId: string, productId: mongoose.Types.ObjectId) {
         const product = await this._ProductModel
-            .findOneAndDelete({
+            .findOne({
                 _id: productId,
                 shop: shopId,
             })
@@ -204,7 +222,29 @@ export class ProductService {
             throw new NotFoundException('Product not found');
         }
 
-        await this._ProductDetailsService.delete(productId, product.type);
+        const session = await this._Connection.startSession();
+
+        try {
+            session.startTransaction();
+            Logger.debug('Delete Product Transaction - Start');
+
+            await this._ProductModel.deleteOne({ _id: productId }, { session });
+            await this._ProductDetailsService.delete(productId, product.type, session);
+
+            const shopObjectId = toObjectId(shopId);
+
+            await this._CommandBus.execute(new DeleteInventoryCommand(productId, shopObjectId, session));
+
+            await session.commitTransaction();
+            Logger.debug('Delete Product Transaction - Commit');
+        } catch (_e) {
+            await session.abortTransaction();
+            Logger.error(`Delete Product Transaction - Rollback: ${_e.message}`);
+            throw new NotFoundException('Could not delete product');
+        } finally {
+            await session.endSession();
+            Logger.debug('Delete Product Transaction - End');
+        }
 
         return new SuccessDto('Delete product successfully', HttpStatus.OK);
     }

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ClientSession, Model } from 'mongoose';
+import mongoose, { ClientSession, Model } from 'mongoose';
 
 import { LoggerServerHelper, toObjectId } from '@/helpers';
 import { Inventory } from '@/modules/inventory/schemas/inventory.schema';
@@ -43,5 +43,13 @@ export class InventoryService {
         }
 
         return true;
+    }
+
+    async delete(
+        productId: mongoose.Types.ObjectId,
+        shopId: mongoose.Types.ObjectId,
+        session: ClientSession | null = null,
+    ) {
+        await this._InventoryModel.deleteOne({ product: productId, shop: shopId }, { session });
     }
 }
