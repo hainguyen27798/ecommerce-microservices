@@ -5,11 +5,13 @@ import { PartialType } from '@nestjs/swagger';
 import { plainToClass, plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import _ from 'lodash';
-import mongoose, { ClientSession, Connection, Model } from 'mongoose';
+import mongoose, { ClientSession, Connection, Model, Types } from 'mongoose';
 
 import { PageOptionsDto, SuccessDto } from '@/dto/core';
 import { formatValidateExceptionHelper, toObjectId } from '@/helpers';
 import { CreateInventoryCommand, DeleteInventoryCommand } from '@/modules/inventory/commands';
+import { PushNotificationToSystemCommand } from '@/modules/notification/commands';
+import { NotificationType } from '@/modules/notification/constants';
 import { CreateProductDto } from '@/modules/product/dto/create-product.dto';
 import { ProductDto } from '@/modules/product/dto/product.dto';
 import { ProductSubtypeRegistry } from '@/modules/product/dto/product-subtype-registry';
@@ -75,6 +77,21 @@ export class ProductService {
                 stock: newProduct.quantity,
             }),
         );
+
+        this._CommandBus
+            .execute(
+                new PushNotificationToSystemCommand({
+                    type: NotificationType.SHOP_NOTIFICATION,
+                    senderId: shop.id,
+                    receiverId: new Types.ObjectId().toString(),
+                    content: `Shop ${shop.name} created a new product`,
+                    options: {
+                        shop: shop.name,
+                        productName: newProduct.name,
+                    },
+                }),
+            )
+            .then();
 
         return new SuccessDto('Create product successfully', HttpStatus.CREATED, newProduct);
     }
