@@ -63,6 +63,17 @@ services:
             - KAFKA_KRAFT_MODE=true
         networks:
             - ecommerce_network
+    rabbitmq:
+        image: rabbitmq:3-management
+        container_name: ecommerce-rabbitmq
+        environment:
+            RABBITMQ_DEFAULT_USER: $RABBITMQ_USERNAME
+            RABBITMQ_DEFAULT_PASS: $RABBITMQ_PASSWORD
+        ports:
+            - 5672:5672
+            - 15672:15672
+        networks:
+            - ecommerce_network
 volumes:
     ecommerce_db:
     redis_db:
