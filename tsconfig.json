@@ -19,7 +19,7 @@
         "noFallthroughCasesInSwitch": false,
         "esModuleInterop": true,
         "paths": {
-            "@/*": ["./src/*"]
+            "@/*": ["./workspaces/ecommerce/src/*"]
         }
     }
 }
