@@ -1,5 +1,6 @@
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { Transport } from '@nestjs/microservices';
 
 import { Configuration } from '@/config/configuration';
 import { LoggerServerHelper } from '@/helpers';
@@ -29,6 +30,20 @@ async function bootstrap() {
 
     // validate input before jump into controller
     app.useGlobalPipes(new ValidationPipe());
+
+    app.connectMicroservice({
+        transport: Transport.KAFKA,
+        options: {
+            client: {
+                brokers: ['localhost:9092'],
+            },
+            consumer: {
+                groupId: 'notification-consumer',
+            },
+        },
+    });
+
+    await app.startAllMicroservices();
 
     await app.listen(Configuration.instance.port);
 }

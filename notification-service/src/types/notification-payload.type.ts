@@ -1,7 +1,5 @@
-import { NotificationType } from '@/constants';
-
 export type NotificationPayloadType = {
-    type: NotificationType;
+    type: string;
     senderId: string;
     receiverId: string;
     content: string;

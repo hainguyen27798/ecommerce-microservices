@@ -84,6 +84,7 @@ export class LoggerServerHelper {
     static get config(): LoggerService {
         return {
             ...LoggerServerHelper.logger,
+            warn: (message: any) => LoggerServerHelper.logger.warn(message),
             log: (message: any) => LoggerServerHelper.logger.info(message),
         };
     }
