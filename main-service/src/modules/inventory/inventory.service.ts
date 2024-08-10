@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { ClientSession, Model } from 'mongoose';
 
-import { LoggerServerHelper, toObjectId } from '@/helpers';
+import { toObjectId } from '@/helpers';
 import { Inventory } from '@/modules/inventory/schemas/inventory.schema';
 import { InventoryType, ReservationRequestType } from '@/modules/inventory/types';
 
@@ -38,7 +38,7 @@ export class InventoryService {
         );
 
         if (!inventory.modifiedCount) {
-            LoggerServerHelper.error(`Inventory - product ${request.product} not found.`);
+            Logger.error(`Inventory - product ${request.product} not found.`);
             return false;
         }
 

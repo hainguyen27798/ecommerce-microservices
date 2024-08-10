@@ -1,8 +1,7 @@
-import { type INestApplication } from '@nestjs/common';
+import { type INestApplication, Logger } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { Configuration } from '@/config';
-import { LoggerServerHelper } from '@/helpers';
 
 export function setupSwagger(app: INestApplication): void {
     const documentBuilder = new DocumentBuilder()
@@ -64,5 +63,5 @@ Routes is following REST standard (Richardson level 3)
         },
     });
 
-    LoggerServerHelper.log(`Documentation: http://localhost:${Configuration.instance.port}/documentation`);
+    Logger.log(`Documentation: http://localhost:${Configuration.instance.port}/documentation`);
 }

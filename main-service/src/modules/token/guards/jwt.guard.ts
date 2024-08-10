@@ -1,9 +1,8 @@
-import { ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
+import { ExecutionContext, ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import _ from 'lodash';
 
-import { LoggerServerHelper } from '@/helpers';
 import { PERMISSION_KEY } from '@/modules/auth/constants';
 import { UserRoles } from '@/modules/user/constants';
 
@@ -21,8 +20,8 @@ export class JwtGuard extends AuthGuard('jwt') {
         ]);
         const hasPermission = _.includes(roles, user?.role);
 
-        LoggerServerHelper.log(`Current role: ${user}`);
-        LoggerServerHelper.log(`Required roles: ${roles}`);
+        Logger.log(`Current role: ${user}`);
+        Logger.log(`Required roles: ${roles}`);
 
         if (!hasPermission) {
             throw err || new ForbiddenException();

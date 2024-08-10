@@ -1,9 +1,16 @@
-import { BadRequestException, ConflictException, ForbiddenException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+    BadRequestException,
+    ConflictException,
+    ForbiddenException,
+    HttpStatus,
+    Injectable,
+    Logger,
+} from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import _ from 'lodash';
 
 import { SuccessDto } from '@/dto/core';
-import { BcryptHelper, LoggerServerHelper } from '@/helpers';
+import { BcryptHelper } from '@/helpers';
 import { AccountDto } from '@/modules/auth/dto';
 import {
     ExtractTokenCommand,
@@ -110,7 +117,7 @@ export class AuthService {
             );
             return new SuccessDto(null, HttpStatus.CREATED, tokenObj);
         } catch (e) {
-            LoggerServerHelper.error(e.toString());
+            Logger.error(e.toString());
             // remove token
             await this.removeToken('session', token.session);
             throw new ForbiddenException('token_is_expired');
