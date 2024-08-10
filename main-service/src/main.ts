@@ -1,7 +1,7 @@
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 
-import { Configuration } from '@/config/configuration';
+import { Configuration } from '@/config';
 import { ENV_MODE } from '@/constants';
 import { LoggerServerHelper } from '@/helpers';
 import { UserService } from '@/modules/user/user.service';

@@ -6,11 +6,11 @@ import { getFirestore } from 'firebase/firestore';
 import { Model } from 'mongoose';
 
 import { Configuration } from '@/config/configuration';
-import { Notification } from '@/modules/notification/schemas/notification.schema';
-import { NotificationPayloadType } from '@/modules/notification/types/notification-payload.type';
+import { Notification } from '@/schemas/notification.schema';
+import { NotificationPayloadType } from '@/types/notification-payload.type';
 
 @Injectable()
-export class NotificationService {
+export class AppService {
     private readonly _Firestore: Firestore;
 
     constructor(@InjectModel(Notification.name) private readonly _NotificationModel: Model<Notification>) {
@@ -20,7 +20,7 @@ export class NotificationService {
 
     async pushNotificationToSystem(payload: NotificationPayloadType) {
         try {
-            this._NotificationModel.create(payload).then();
+            await this._NotificationModel.create(payload);
             Logger.debug(`${payload.senderId} pushed notification to system`);
         } catch (_e) {
             Logger.error(`${payload.senderId.toString()} failed to push the notification to the system: ${_e.message}`);

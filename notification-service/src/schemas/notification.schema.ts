@@ -1,8 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Schema as MongooseSchema } from 'mongoose';
 
-import { AbstractSchema } from '@/database/schemas/abstract.schema';
-import { NotificationType } from '@/modules/notification/constants';
+import { NotificationType } from '@/constants';
+import { AbstractSchema } from '@/schemas/abstract.schema';
 
 const COLLECTION_NAME = 'notifications';
 

@@ -20,6 +20,7 @@ export class MongoDatabase implements MongooseOptionsFactory {
             authSource: mongoEnv.authSource,
             user: mongoEnv.username,
             pass: mongoEnv.password,
+            directConnection: true,
         };
     }
 }

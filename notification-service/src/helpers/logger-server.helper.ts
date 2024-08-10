@@ -1,9 +1,10 @@
+import { LoggerService } from '@nestjs/common';
 import { Handler } from 'express';
 import morgan from 'morgan';
 import * as path from 'path';
 import * as winston from 'winston';
 
-import { Configuration } from '@/config';
+import { Configuration } from '@/config/configuration';
 
 const levels = {
     error: 0,
@@ -80,16 +81,12 @@ export class LoggerServerHelper {
         }
     }
 
-    static log(msg: unknown) {
-        LoggerServerHelper.logger.info(msg);
-    }
-
-    static error(msg: unknown) {
-        LoggerServerHelper.logger?.error(msg);
-    }
-
-    static get instance() {
-        return LoggerServerHelper.logger;
+    static get config(): LoggerService {
+        return {
+            ...LoggerServerHelper.logger,
+            warn: (message: any) => LoggerServerHelper.logger.warn(message),
+            log: (message: any) => LoggerServerHelper.logger.info(message),
+        };
     }
 
     static get morganMiddleware() {

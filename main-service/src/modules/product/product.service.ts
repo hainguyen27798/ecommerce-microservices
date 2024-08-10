@@ -1,5 +1,6 @@
-import { BadRequestException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
+import { ClientKafka } from '@nestjs/microservices';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { PartialType } from '@nestjs/swagger';
 import { plainToClass, plainToInstance } from 'class-transformer';
@@ -7,11 +8,10 @@ import { validate } from 'class-validator';
 import _ from 'lodash';
 import mongoose, { ClientSession, Connection, Model, Types } from 'mongoose';
 
+import { MicroserviceName } from '@/constants';
 import { PageOptionsDto, SuccessDto } from '@/dto/core';
 import { formatValidateExceptionHelper, toObjectId } from '@/helpers';
 import { CreateInventoryCommand, DeleteInventoryCommand } from '@/modules/inventory/commands';
-import { PushNotificationToSystemCommand } from '@/modules/notification/commands';
-import { NotificationType } from '@/modules/notification/constants';
 import { CreateProductDto } from '@/modules/product/dto/create-product.dto';
 import { ProductDto } from '@/modules/product/dto/product.dto';
 import { ProductSubtypeRegistry } from '@/modules/product/dto/product-subtype-registry';
@@ -32,6 +32,7 @@ export class ProductService {
         private readonly _CommandBus: CommandBus,
         private readonly _ProductDetailsService: ProductDetailsService,
         @InjectConnection() private readonly _Connection: Connection,
+        @Inject(MicroserviceName.NOTIFICATION_MICROSERVICE) private readonly _NotificationClient: ClientKafka,
     ) {}
 
     async findProductOwner(shopId: string, searchDro: SearchProductDto) {
@@ -78,20 +79,19 @@ export class ProductService {
             }),
         );
 
-        this._CommandBus
-            .execute(
-                new PushNotificationToSystemCommand({
-                    type: NotificationType.SHOP_NOTIFICATION,
-                    senderId: shop.id,
-                    receiverId: new Types.ObjectId().toString(),
-                    content: `Shop ${shop.name} created a new product`,
-                    options: {
-                        shop: shop.name,
-                        productName: newProduct.name,
-                    },
-                }),
-            )
-            .then();
+        this._NotificationClient.emit(
+            'create_notification',
+            JSON.stringify({
+                type: 'SHOP_NOTIFICATION',
+                senderId: shop.id,
+                receiverId: new Types.ObjectId().toString(),
+                content: `Shop ${shop.name} created a new product`,
+                options: {
+                    shop: shop.name,
+                    productName: newProduct.name,
+                },
+            }),
+        );
 
         return new SuccessDto('Create product successfully', HttpStatus.CREATED, newProduct);
     }
