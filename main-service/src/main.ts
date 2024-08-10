@@ -1,4 +1,4 @@
-import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 
 import { Configuration } from '@/config';
@@ -25,7 +25,7 @@ async function bootstrap() {
 
     // init logger
     LoggerServerHelper.init();
-    app.useLogger(LoggerServerHelper.instance);
+    app.useLogger(LoggerServerHelper.config);
 
     // apply http logger
     app.use(LoggerServerHelper.morganMiddleware);
@@ -48,8 +48,8 @@ async function bootstrap() {
 
 bootstrap()
     .then(() => {
-        LoggerServerHelper.log(`Server running at: http://localhost:${Configuration.instance.port}`);
+        Logger.log(`Server running at: http://localhost:${Configuration.instance.port}`);
     })
     .catch((reason) => {
-        LoggerServerHelper.error(`Server occurred error: ${reason}`);
+        Logger.error(`Server occurred error: ${reason}`);
     });
