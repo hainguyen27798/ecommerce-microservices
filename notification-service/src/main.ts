@@ -33,14 +33,7 @@ async function bootstrap() {
 
     app.connectMicroservice({
         transport: Transport.KAFKA,
-        options: {
-            client: {
-                brokers: ['localhost:9092'],
-            },
-            consumer: {
-                groupId: 'notification-consumer',
-            },
-        },
+        options: Configuration.instance.notificationBrokerOptions,
     });
 
     await app.startAllMicroservices();

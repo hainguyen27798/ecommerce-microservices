@@ -1,4 +1,5 @@
 import { type FirebaseOptions } from '@firebase/app';
+import { KafkaOptions } from '@nestjs/microservices';
 
 import { ENV_MODE } from '@/constants';
 
@@ -14,4 +15,5 @@ export type TConfig = {
         authSource: string;
     };
     firebase: FirebaseOptions;
+    notificationBrokerOptions: KafkaOptions['options'];
 };

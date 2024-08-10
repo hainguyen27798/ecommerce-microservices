@@ -27,6 +27,15 @@ export class Configuration {
                     appId: process.env['FIREBASE_APP_ID'],
                     measurementId: process.env['FIREBASE_MEASUREMENT_ID'],
                 },
+                notificationBrokerOptions: {
+                    client: {
+                        clientId: process.env['KAFKA_CLIENT_ID'],
+                        brokers: process.env['KAFKA_BROKERS']?.split(';'),
+                    },
+                    consumer: {
+                        groupId: process.env['KAFKA_CONSUMER_ID'],
+                    },
+                },
             };
         }
         return Configuration._config;

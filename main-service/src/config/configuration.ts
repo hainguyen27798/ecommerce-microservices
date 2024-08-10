@@ -39,7 +39,7 @@ export class Configuration {
                     consumer: {
                         groupId: process.env['KAFKA_NOTIFICATION_CONSUMER_ID'],
                     },
-                }
+                },
             };
         }
         return Configuration._config;
