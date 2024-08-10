@@ -1,7 +1,11 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
+import { ClientsModule } from '@nestjs/microservices';
 import { getConnectionToken, MongooseModule } from '@nestjs/mongoose';
 
+import { NotificationServiceConfig } from '@/config';
+import { MicroserviceName } from '@/constants';
 import { handler } from '@/modules/product/commands';
 import { Product, ProductSchema } from '@/modules/product/schemas/product.schema';
 import {
@@ -33,6 +37,13 @@ import { ProductDetailsService } from './product-details.service';
             },
         ]),
         CqrsModule,
+        ClientsModule.registerAsync([
+            {
+                imports: [ConfigModule],
+                name: MicroserviceName.NOTIFICATION_MICROSERVICE,
+                useClass: NotificationServiceConfig,
+            },
+        ]),
     ],
 })
 export class ProductModule {}

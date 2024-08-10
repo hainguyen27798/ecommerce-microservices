@@ -1,4 +1,4 @@
-import { type FirebaseOptions } from '@firebase/app';
+import { KafkaOptions } from '@nestjs/microservices';
 import { AuthOptions } from 'express-oauth2-jwt-bearer';
 import { RedisOptions } from 'ioredis';
 
@@ -21,5 +21,5 @@ export type TConfig = {
     };
     auth0Config: AuthOptions;
     redis: RedisOptions;
-    firebase: FirebaseOptions;
+    notificationBrokerOptions: KafkaOptions['options'];
 };

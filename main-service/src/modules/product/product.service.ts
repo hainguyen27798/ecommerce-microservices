@@ -1,12 +1,14 @@
-import { BadRequestException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
+import { ClientKafka } from '@nestjs/microservices';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { PartialType } from '@nestjs/swagger';
 import { plainToClass, plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import _ from 'lodash';
-import mongoose, { ClientSession, Connection, Model } from 'mongoose';
+import mongoose, { ClientSession, Connection, Model, Types } from 'mongoose';
 
+import { MicroserviceName } from '@/constants';
 import { PageOptionsDto, SuccessDto } from '@/dto/core';
 import { formatValidateExceptionHelper, toObjectId } from '@/helpers';
 import { CreateInventoryCommand, DeleteInventoryCommand } from '@/modules/inventory/commands';
@@ -30,6 +32,7 @@ export class ProductService {
         private readonly _CommandBus: CommandBus,
         private readonly _ProductDetailsService: ProductDetailsService,
         @InjectConnection() private readonly _Connection: Connection,
+        @Inject(MicroserviceName.NOTIFICATION_MICROSERVICE) private readonly _NotificationClient: ClientKafka,
     ) {}
 
     async findProductOwner(shopId: string, searchDro: SearchProductDto) {
@@ -73,6 +76,20 @@ export class ProductService {
                 product: newProduct._id.toString(),
                 shop: shop.id,
                 stock: newProduct.quantity,
+            }),
+        );
+
+        this._NotificationClient.emit(
+            'create_notification',
+            JSON.stringify({
+                type: 'SHOP_NOTIFICATION',
+                senderId: shop.id,
+                receiverId: new Types.ObjectId().toString(),
+                content: `Shop ${shop.name} created a new product`,
+                options: {
+                    shop: shop.name,
+                    productName: newProduct.name,
+                },
             }),
         );
 
