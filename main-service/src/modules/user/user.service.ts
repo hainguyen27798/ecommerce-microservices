@@ -4,7 +4,7 @@ import { plainToClass, plainToInstance } from 'class-transformer';
 import _ from 'lodash';
 import mongoose, { Model } from 'mongoose';
 
-import { Configuration } from '@/config/configuration';
+import { Configuration } from '@/config';
 import { PageOptionsDto, SuccessDto } from '@/dto/core';
 import { BcryptHelper, codeGeneratorHelper, toObjectId } from '@/helpers';
 import { UserRoles, UserStatus } from '@/modules/user/constants';

@@ -3,7 +3,7 @@ import morgan from 'morgan';
 import * as path from 'path';
 import * as winston from 'winston';
 
-import { Configuration } from '@/config/configuration';
+import { Configuration } from '@/config';
 
 const levels = {
     error: 0,

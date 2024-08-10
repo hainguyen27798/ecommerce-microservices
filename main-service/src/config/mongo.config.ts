@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { MongooseModuleOptions, MongooseOptionsFactory } from '@nestjs/mongoose';
 import * as mongoose from 'mongoose';
 
-import { Configuration } from '@/config/configuration';
+import { Configuration } from '@/config';
 import { ENV_MODE } from '@/constants';
 
 @Injectable()
-export class MongoDatabase implements MongooseOptionsFactory {
+export class MongoConfig implements MongooseOptionsFactory {
     createMongooseOptions(): MongooseModuleOptions {
         const mongoEnv = Configuration.instance.mongo;
         const urlConnection = `mongodb://${mongoEnv.host}:${mongoEnv.port}/${mongoEnv.databaseName}`;

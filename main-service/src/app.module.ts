@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
-import { Configuration } from '@/config/configuration';
+import { Configuration } from '@/config';
 import { DatabaseModule } from '@/database/database.module';
 import { ApiKeyModule } from '@/modules/api-key/api-key.module';
 import { AuthModule } from '@/modules/auth/auth.module';

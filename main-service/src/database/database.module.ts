@@ -2,13 +2,13 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 
-import { MongoDatabase } from '@/database';
+import { MongoConfig } from '@/config';
 
 @Module({
     imports: [
         MongooseModule.forRootAsync({
             imports: [ConfigModule],
-            useClass: MongoDatabase,
+            useClass: MongoConfig,
         }),
     ],
 })

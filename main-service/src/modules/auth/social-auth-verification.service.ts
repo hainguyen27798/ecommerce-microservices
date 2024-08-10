@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { auth } from 'express-oauth2-jwt-bearer';
 import { promisify } from 'util';
 
-import { Configuration } from '@/config/configuration';
+import { Configuration } from '@/config';
 
 @Injectable()
 export class SocialAuthVerificationService {
