@@ -4,10 +4,7 @@ import { TokenService } from '@/modules/token/token.service';
 import { JwtPayload } from '@/modules/token/types';
 
 export class VerifyTokenCommand implements ICommand {
-    constructor(
-        public readonly token: string,
-        public readonly secretKey: string,
-    ) {}
+    constructor(public readonly token: string) {}
 }
 
 @CommandHandler(VerifyTokenCommand)
@@ -15,6 +12,6 @@ export class VerifyTokenHandler implements ICommandHandler<VerifyTokenCommand, J
     constructor(private _TokenService: TokenService) {}
 
     async execute(command: VerifyTokenCommand): Promise<JwtPayload> {
-        return this._TokenService.verifyToken(command.token, command.secretKey);
+        return this._TokenService.verifyToken(command.token);
     }
 }

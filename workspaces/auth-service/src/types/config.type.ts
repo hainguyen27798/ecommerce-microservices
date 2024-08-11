@@ -18,4 +18,8 @@ export type TConfig = {
         pass: string;
     };
     auth0Config: AuthOptions;
+    jwtSecret: {
+        privateKey: string;
+        publicKey: string;
+    };
 };

@@ -26,6 +26,10 @@ export class Configuration {
                     issuerBaseURL: process.env['AUTH0_ISSUER_BASE_URL'],
                     audience: process.env['AUTH0_AUDIENCE'],
                 },
+                jwtSecret: {
+                    privateKey: process.env['AUTH_JWT_PRIVATE_KEY'],
+                    publicKey: process.env['AUTH_JWT_PUBLIC_KEY'],
+                },
             };
         }
         return Configuration._config;

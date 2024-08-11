@@ -20,7 +20,7 @@ export class JwtGuard extends AuthGuard('jwt') {
         ]);
         const hasPermission = _.includes(roles, user?.role);
 
-        Logger.log(`Current role: ${user}`);
+        Logger.log(`Current role: ${user.role}`);
         Logger.log(`Required roles: ${roles}`);
 
         if (!hasPermission) {

@@ -4,7 +4,8 @@ import { Types } from 'mongoose';
 
 import { ObjectId } from '@/decorators';
 import { MessageResponseDto, PageOptionsDto, ResponseDto } from '@/dto/core';
-import { Auth } from '@/modules/auth/decorators';
+import { Auth, AuthUser } from '@/modules/auth/decorators';
+import { TAuthUser } from '@/modules/token/types';
 import { UserRoles } from '@/modules/user/constants';
 import { RequestUserDto, UserDto } from '@/modules/user/dto';
 import { UpdateUserDto } from '@/modules/user/dto/update-user.dto';
@@ -26,6 +27,16 @@ export class UserController {
     })
     getUsers(@Query(new ValidationPipe({ transform: true })) pageOption: PageOptionsDto) {
         return this._UserService.getUsers(pageOption);
+    }
+
+    @Get('me')
+    @Auth(UserRoles.SUPERUSER, UserRoles.USER, UserRoles.MANAGER, UserRoles.SHOP)
+    @ApiOperation({ description: 'Get me' })
+    @ApiOkResponse({
+        type: UserInfoDto,
+    })
+    getMe(@AuthUser() user: TAuthUser) {
+        return this._UserService.findUserById(user.id);
     }
 
     @Post('request')

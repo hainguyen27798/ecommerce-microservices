@@ -15,13 +15,7 @@ export class Token extends AbstractSchema {
     user: User;
 
     @Prop({ required: true })
-    publicKey: string;
-
-    @Prop({ required: true })
     session: string;
-
-    @Prop({ required: true })
-    privateKey: string;
 
     @Prop({ type: Array, default: [] })
     refreshTokenUsed: string[];

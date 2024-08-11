@@ -104,7 +104,7 @@ export class AuthService {
         }
 
         try {
-            await this.verifyToken(refreshToken, token.publicKey);
+            await this.verifyToken(refreshToken);
             const tokenObj: PairSecretToken = await this.provideNewToken(
                 {
                     name: userPayload.name,
@@ -148,7 +148,7 @@ export class AuthService {
         return this._CommandBus.execute(new ExtractTokenCommand(token));
     }
 
-    private async verifyToken(token: string, secretKey: string): Promise<JwtPayload> {
-        return this._CommandBus.execute(new VerifyTokenCommand(token, secretKey));
+    private async verifyToken(token: string): Promise<JwtPayload> {
+        return this._CommandBus.execute(new VerifyTokenCommand(token));
     }
 }

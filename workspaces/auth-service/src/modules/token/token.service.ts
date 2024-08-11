@@ -7,6 +7,7 @@ import { DurationUnitType } from 'dayjs/plugin/duration';
 import _ from 'lodash';
 import { Model } from 'mongoose';
 
+import { Configuration } from '@/config';
 import { TokenExpires } from '@/modules/token/constants';
 import { Token, TokenDocument } from '@/modules/token/schemas/token.schema';
 import {
@@ -35,8 +36,8 @@ export class TokenService {
         };
 
         // create pair jwt token
-        const accessToken: string = this.createJwtToken(tokenPayload, privateKey, TokenExpires.ACCESS_TOKEN);
-        const refreshToken: string = this.createJwtToken(tokenPayload, publicKey, TokenExpires.REFRESH_TOKEN);
+        const accessToken: string = this.createJwtToken(tokenPayload, TokenExpires.ACCESS_TOKEN);
+        const refreshToken: string = this.createJwtToken(tokenPayload, TokenExpires.REFRESH_TOKEN);
 
         // update refresh token
         await this.saveToken(
@@ -63,11 +64,11 @@ export class TokenService {
         return this._TokenModel.findOneAndUpdate({ user }, obj, { upsert: true, new: true }).lean();
     }
 
-    private createJwtToken(payload: JwtPayload, secretKey: string, expiresIn: string) {
+    private createJwtToken(payload: JwtPayload, expiresIn: string) {
         return this._JwtService.sign(payload, {
-            // algorithm: 'RS256',
+            algorithm: 'RS256',
             expiresIn,
-            privateKey: secretKey,
+            privateKey: Configuration.instance.jwtSecret.privateKey,
         });
     }
 
@@ -97,18 +98,15 @@ export class TokenService {
     }
 
     async provideNewToken(payload: TAuthUser, oldRefreshToken: string): Promise<PairSecretToken> {
-        // create new pair key
-        const { privateKey, publicKey }: PairKey = this.createSecretPairKey();
-
         // create new pair jwt token
-        const accessToken: string = this.createJwtToken(payload, privateKey, TokenExpires.ACCESS_TOKEN);
-        const refreshToken: string = this.createJwtToken(payload, publicKey, TokenExpires.REFRESH_TOKEN);
+        const accessToken: string = this.createJwtToken(payload, TokenExpires.ACCESS_TOKEN);
+        const refreshToken: string = this.createJwtToken(payload, TokenExpires.REFRESH_TOKEN);
 
         // update token
         await this._TokenModel.updateOne(
             { session: payload.session },
             {
-                $set: { refreshToken, privateKey, publicKey },
+                $set: { refreshToken },
                 $push: { refreshTokenUsed: oldRefreshToken },
             },
         );
@@ -116,9 +114,10 @@ export class TokenService {
         return { refreshToken, accessToken };
     }
 
-    async verifyToken(token: string, secretKey: string): Promise<JwtPayload> {
+    async verifyToken(token: string): Promise<JwtPayload> {
         return this._JwtService.verify(token, {
-            secret: secretKey,
+            algorithms: ['RS256'],
+            secret: Configuration.instance.jwtSecret.publicKey,
         });
     }
 
