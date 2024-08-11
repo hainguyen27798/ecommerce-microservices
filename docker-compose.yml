@@ -36,7 +36,7 @@ services:
     mongo_notification:
         build:
             dockerfile: .docker/mongo/Dockerfile-Notification
-        container_name: ecommerce-notification
+        container_name: ecommerce-db-notification
         restart: unless-stopped
         environment:
             MONGO_INITDB_ROOT_USERNAME: $MONGO_NOTIFICATION_USERNAME
@@ -63,6 +63,36 @@ services:
             - ecommerce_network
         volumes:
             - ecommerce_notification_db:/data/db
+    mongo_auth:
+        build:
+            dockerfile: .docker/mongo/Dockerfile
+        container_name: ecommerce-db-auth
+        restart: unless-stopped
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: $MONGO_AUTH_USERNAME
+            MONGO_INITDB_ROOT_PASSWORD: $MONGO_AUTH_PASSWORD
+        ports:
+            - '${MONGO_AUTH_PORT}:27017'
+        command: --replSet rs2 --keyFile /etc/mongo-keyfile --bind_ip_all --port 27017
+        healthcheck:
+            test: echo "
+                try { rs.status() }
+                catch (err) {
+                    rs.initiate({
+                        _id:'rs2',
+                        members:[
+                            { _id:0, host:'127.0.0.1:27017' },
+                        ]
+                    })
+                }" | mongosh --port 27017 -u $MONGO_AUTH_USERNAME -p $MONGO_AUTH_PASSWORD --authenticationDatabase admin
+            interval: 5s
+            timeout: 15s
+            start_period: 15s
+            retries: 10
+        networks:
+            - ecommerce_network
+        volumes:
+            - ecommerce_auth_db:/data/db
     redis:
         container_name: ecommerce-redis
         image: redis:alpine
@@ -122,3 +152,4 @@ volumes:
     ecommerce_db:
     redis_db:
     ecommerce_notification_db:
+    ecommerce_auth_db:
